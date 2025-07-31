@@ -1,0 +1,14 @@
+D:\StudyC#\Cycles\Cycles\bin\Debug\net8.0\Cycles.exe
+D:\StudyC#\Cycles\Cycles\bin\Debug\net8.0\Cycles.deps.json
+D:\StudyC#\Cycles\Cycles\bin\Debug\net8.0\Cycles.runtimeconfig.json
+D:\StudyC#\Cycles\Cycles\bin\Debug\net8.0\Cycles.dll
+D:\StudyC#\Cycles\Cycles\bin\Debug\net8.0\Cycles.pdb
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.GeneratedMSBuildEditorConfig.editorconfig
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.AssemblyInfoInputs.cache
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.AssemblyInfo.cs
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.csproj.CoreCompileInputs.cache
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.dll
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\refint\Cycles.dll
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.pdb
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\Cycles.genruntimeconfig.cache
+D:\StudyC#\Cycles\Cycles\obj\Debug\net8.0\ref\Cycles.dll
