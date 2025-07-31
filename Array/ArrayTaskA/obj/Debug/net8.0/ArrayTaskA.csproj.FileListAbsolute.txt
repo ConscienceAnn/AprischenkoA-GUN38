@@ -1,0 +1,14 @@
+D:\StudyC#\ArrayTaskA\ArrayTaskA\bin\Debug\net8.0\ArrayTaskA.exe
+D:\StudyC#\ArrayTaskA\ArrayTaskA\bin\Debug\net8.0\ArrayTaskA.deps.json
+D:\StudyC#\ArrayTaskA\ArrayTaskA\bin\Debug\net8.0\ArrayTaskA.runtimeconfig.json
+D:\StudyC#\ArrayTaskA\ArrayTaskA\bin\Debug\net8.0\ArrayTaskA.dll
+D:\StudyC#\ArrayTaskA\ArrayTaskA\bin\Debug\net8.0\ArrayTaskA.pdb
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.GeneratedMSBuildEditorConfig.editorconfig
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.AssemblyInfoInputs.cache
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.AssemblyInfo.cs
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.csproj.CoreCompileInputs.cache
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.dll
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\refint\ArrayTaskA.dll
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.pdb
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ArrayTaskA.genruntimeconfig.cache
+D:\StudyC#\ArrayTaskA\ArrayTaskA\obj\Debug\net8.0\ref\ArrayTaskA.dll
