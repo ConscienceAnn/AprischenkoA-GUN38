@@ -5,20 +5,26 @@ namespace Classes
     public class Unit
     {
         public string Name { get; }
-        private float _health; //а не нужно устанавливать какое то значение? в таком формате будет по умолчанию 0, и тогда пациент скорее мертв.. а на старте то должен быть полон сил...
-
+        private float _health = 100f;
+        public float Armor { get; }
+        public Interval Damage { get; } = new Interval(0, 10);
 
         public Unit(string name)
         {
             Name = name;
+            Armor = 0.6f;
         }
+
+        public Unit(string name, int minDamage, int maxDamage) : this(name)
+        {
+            Damage = new Interval(minDamage, maxDamage);
+        }
+
 
         public float Health => _health;
 
-        public int Damage { get; } = 5;
-        public float Armor { get; } = 0.6f;
 
-        public Unit() : this("Unknown Unit") { }
+        
 
         public float GetRealHealth()
         {
@@ -27,15 +33,19 @@ namespace Classes
 
         public bool SetDamage(float value) 
         {
-            if (value < 0f) //вроде не требуется, но есть смысл добавить проверку значения value
+            if (value <= 0f) 
             {
-                return false; //не поняла только что возращать, вроде так игнорируется если будет отрицательное значение
+                return false; 
             }
-            else
+            
+            if (_health <= 0f)
             {
-                _health -= value * Armor;
-                return _health <= 0f;
+                return true;
             }
+            
+            _health -= value * Armor;
+            return _health <= 0f;
+            
         }
     }
 }

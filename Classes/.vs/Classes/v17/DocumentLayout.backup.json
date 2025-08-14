@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "D:\\StudyC#\\Classes\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|d:\\studyc#\\classes\\classes\\dungeon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|solutionrelative:classes\\dungeon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|d:\\studyc#\\classes\\classes\\room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|solutionrelative:classes\\room.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|d:\\studyc#\\classes\\classes\\interval.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|solutionrelative:classes\\interval.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|d:\\studyc#\\classes\\classes\\weapon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{37DD42B8-56C3-4BB2-A2D1-CD9C6B9FE6F9}|Classes\\Classes.csproj|solutionrelative:classes\\weapon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -27,40 +39,79 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Dungeon.cs",
+              "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Dungeon.cs",
+              "RelativeDocumentMoniker": "Classes\\Dungeon.cs",
+              "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Dungeon.cs",
+              "RelativeToolTip": "Classes\\Dungeon.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-14T15:00:08.79Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Room.cs",
+              "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Room.cs",
+              "RelativeDocumentMoniker": "Classes\\Room.cs",
+              "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Room.cs",
+              "RelativeToolTip": "Classes\\Room.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-14T14:53:53.906Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Interval.cs",
+              "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Interval.cs",
+              "RelativeDocumentMoniker": "Classes\\Interval.cs",
+              "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Interval.cs",
+              "RelativeToolTip": "Classes\\Interval.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC0AAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-14T14:18:53.945Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "Weapon.cs",
               "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Weapon.cs",
               "RelativeDocumentMoniker": "Classes\\Weapon.cs",
               "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Weapon.cs",
               "RelativeToolTip": "Classes\\Weapon.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-11T10:11:13.286Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Unit.cs",
-              "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Unit.cs",
-              "RelativeDocumentMoniker": "Classes\\Unit.cs",
-              "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Unit.cs",
-              "RelativeToolTip": "Classes\\Unit.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-11T09:24:30.628Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Program.cs",
               "RelativeDocumentMoniker": "Classes\\Program.cs",
               "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Program.cs",
               "RelativeToolTip": "Classes\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-11T09:22:43.216Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Unit.cs",
+              "DocumentMoniker": "D:\\StudyC#\\Classes\\Classes\\Unit.cs",
+              "RelativeDocumentMoniker": "Classes\\Unit.cs",
+              "ToolTip": "D:\\StudyC#\\Classes\\Classes\\Unit.cs",
+              "RelativeToolTip": "Classes\\Unit.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-11T09:24:30.628Z",
               "EditorCaption": ""
             }
           ]
