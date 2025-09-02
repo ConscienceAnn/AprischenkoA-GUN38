@@ -74,6 +74,13 @@ namespace GamePrototype.Combat
         {
             defender.ApplyDamage(attacker.GetUnitDamage());
             Console.WriteLine($"{attacker.Name} hits {defender.Name}. {defender.Name} health {defender.Health}/{defender.MaxHealth}");
+
+            if (defender is Player player)
+            {
+                player.ReduceArmourDurability();
+                player.ReduceHelmetDurability(); 
+            }
+
             if (defender.Health == 0) 
             {
                 Console.WriteLine($"{defender.Name} is dead!");

@@ -6,6 +6,8 @@
 
         public Grindstone(string name) : base(name)
         {
-        }    
+        }
+
+        public uint RepairPower { get; } = 4;
     }
 }
