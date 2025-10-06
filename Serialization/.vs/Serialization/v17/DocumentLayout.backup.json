@@ -1,0 +1,101 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Netology-GUN-38\\Serialization\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|d:\\netology-gun-38\\serialization\\assets\\scripts\\readonlydrawer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\readonlydrawer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|D:\\Netology-GUN-38\\Serialization\\assets\\scripts\\positionsaver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\positionsaver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|D:\\Netology-GUN-38\\Serialization\\assets\\scripts\\replaymover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\replaymover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|D:\\Netology-GUN-38\\Serialization\\assets\\scripts\\readonlyattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\readonlyattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|D:\\Netology-GUN-38\\Serialization\\assets\\scripts\\editormover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4F8ED7E5-64B8-7ECA-6EDE-F0FD438FFAD3}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\editormover.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ReadOnlyDrawer.cs",
+              "DocumentMoniker": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\ReadOnlyDrawer.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\ReadOnlyDrawer.cs",
+              "ToolTip": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\ReadOnlyDrawer.cs",
+              "RelativeToolTip": "Assets\\Scripts\\ReadOnlyDrawer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-06T09:31:00.005Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ReplayMover.cs",
+              "DocumentMoniker": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\ReplayMover.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\ReplayMover.cs",
+              "ToolTip": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\ReplayMover.cs",
+              "RelativeToolTip": "Assets\\Scripts\\ReplayMover.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAYwBoAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-06T06:55:23.038Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PositionSaver.cs",
+              "DocumentMoniker": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\PositionSaver.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\PositionSaver.cs",
+              "ToolTip": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\PositionSaver.cs",
+              "RelativeToolTip": "Assets\\Scripts\\PositionSaver.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-06T06:52:51.939Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ReadOnlyAttribute.cs",
+              "DocumentMoniker": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\ReadOnlyAttribute.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\ReadOnlyAttribute.cs",
+              "ToolTip": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\ReadOnlyAttribute.cs",
+              "RelativeToolTip": "Assets\\Scripts\\ReadOnlyAttribute.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-06T09:30:08.741Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "EditorMover.cs",
+              "DocumentMoniker": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\EditorMover.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\EditorMover.cs",
+              "ToolTip": "D:\\Netology-GUN-38\\Serialization\\Assets\\Scripts\\EditorMover.cs",
+              "RelativeToolTip": "Assets\\Scripts\\EditorMover.cs",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAQwDwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-06T06:54:53.943Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
