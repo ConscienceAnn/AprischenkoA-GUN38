@@ -3,32 +3,65 @@ using UnityEngine;
 
 public class Mover : MonoBehaviour
 {
-	[SerializeField]
-	private float _moveTime = 1f;
-	[SerializeField]
-	private float _delayTime = 2f;
-	[SerializeField]
-	private Vector3[] _positions;
+    [SerializeField] private Vector3 _start = Vector3.zero;  
+    [SerializeField] private Vector3 _end = new Vector3(2f, 0, 0);
+    [SerializeField] private float _speed = 2f;
+    [SerializeField] private float _delay = 1f;
 
-	private IEnumerator Start()
+    private Rigidbody _rb;
+    private Vector3 _globalStart;
+    private Vector3 _globalEnd;
+
+    private IEnumerator Start()
     {
-		if(_positions.Length < 2) yield break;
-		int prev = 0, curr = 1;
-		var time = 0f;
-		var transform = this.transform;
-		while(true)
-		{
-			transform.position = Vector3.Lerp(_positions[prev], _positions[curr], time / _moveTime);
-			time += Time.deltaTime;
-			if(time >= _moveTime)
-			{
-				time = 0f;
-				prev = curr;
-				curr = (curr + 1) % _positions.Length;
-				yield return new WaitForSeconds(_delayTime);
-			}
+        _rb = GetComponent<Rigidbody>();
+        if (_rb == null)
+        {
+            Debug.LogError("Mover: нужен Rigidbody!");
+            yield break;
+        }
+        _rb.isKinematic = true;
 
-			yield return null;
-		}
-	}
+        _globalStart = transform.TransformPoint(_start);
+        _globalEnd = transform.TransformPoint(_end);
+
+        while (true)
+        {
+            yield return MoveBetween(_globalStart, _globalEnd);
+            yield return new WaitForSeconds(_delay);
+
+            yield return MoveBetween(_globalEnd, _globalStart);
+            yield return new WaitForSeconds(_delay);
+        }
+    }
+
+    private IEnumerator MoveBetween(Vector3 from, Vector3 to)
+    {
+        float distance = Vector3.Distance(from, to);
+        if (distance < 0.001f) yield break;
+
+        float duration = distance / _speed;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.fixedDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            Vector3 pos = Vector3.Lerp(from, to, t);
+            _rb.MovePosition(pos);
+            yield return new WaitForFixedUpdate();
+        }
+
+        _rb.MovePosition(to);
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Vector3 gStart = transform.TransformPoint(_start);
+        Vector3 gEnd = transform.TransformPoint(_end);
+        Gizmos.DrawSphere(gStart, 0.1f);
+        Gizmos.DrawSphere(gEnd, 0.1f);
+        Gizmos.DrawLine(gStart, gEnd);
+    }
 }
