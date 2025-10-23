@@ -1,0 +1,34 @@
+{
+    "name": "GameControls",
+    "maps": [
+        {
+            "name": "Game",
+            "id": "27d09ef6-5398-49a3-8ac8-741c476069c9",
+            "actions": [
+                {
+                    "name": "Restart",
+                    "type": "Button",
+                    "id": "8eded0a8-7b3e-4f33-89df-525cd4a4d8ac",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Hold",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "0a4d07bb-d50c-4bfd-9145-198e40b9a249",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

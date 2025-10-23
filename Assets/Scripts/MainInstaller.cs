@@ -5,7 +5,7 @@ public class MainInstaller : MonoInstaller
 {
     public override void InstallBindings()
     {
-        Container.Bind<SceneController>().FromComponentInHierarchy().AsSingle();
+       Container.Bind<SceneController>().FromComponentInHierarchy().AsSingle();
     }
    
 
