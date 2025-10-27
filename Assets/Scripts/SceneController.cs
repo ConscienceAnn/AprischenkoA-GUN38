@@ -5,6 +5,6 @@ public class SceneController : MonoBehaviour
 {
     public void OpenGameScene()
     {
-        SceneManager.LoadScene("GameScene", LoadSceneMode.Additive);
+        SceneManager.LoadScene("GameScene");
     }
 }

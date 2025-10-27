@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "CellPalette", menuName = "Settings/Cell Palette", order = 0)]
 public class CellPaletteSettings : ScriptableObject
 {
     [field: SerializeField, Space(20f)]
