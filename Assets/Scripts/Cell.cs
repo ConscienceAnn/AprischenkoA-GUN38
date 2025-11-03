@@ -18,10 +18,26 @@ public class Cell : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
     public event Action<Cell> OnPointerClickEvent;
 
     public void SetSelect(Material material)
-        => (_select.enabled, _select.sharedMaterial) = (true, material);
+    {
+        if (_select == null)
+        {
+            Debug.LogError("Select not assigned in Cell!");
+            return;
+        }
+        _select.enabled = true;
+        _select.sharedMaterial = material;
+    }
+
 
     public void ResetSelect()
-        => (_select.enabled) = false;
+    {
+        if (_select == null)
+        {
+            Debug.LogError("Select not assigned in Cell!");
+            return;
+        }
+        _select.enabled = false;
+    }
 
     public void OnPointerClick(PointerEventData eventData)
         => OnPointerClickEvent.Invoke(this);
