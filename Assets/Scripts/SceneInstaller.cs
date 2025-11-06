@@ -2,7 +2,7 @@
 using UnityEngine;
 using Zenject;
 
-public class GameInstaller : MonoInstaller
+public class SceneInstaller : MonoInstaller
 {
     [SerializeField]
     private CellManager _cellManager;
@@ -22,9 +22,9 @@ public class GameInstaller : MonoInstaller
 
         // 4. Другие биндинги
         Container.BindInstance(_cellPaletteSettings).AsSingle();
-        Container.BindInstance(_cellManager).AsSingle();
+      //  Container.BindInstance(_cellManager).AsSingle();
 
-        // 5. Подписка на клик по клетке (как у тебя было)
+        // 5. Подписка на клик по клетке 
         _cellManager.OnCellClicked.AddListener(cell =>
         {
             cell.SetSelect(_cellPaletteSettings.SelectCell);

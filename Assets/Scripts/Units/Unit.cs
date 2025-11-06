@@ -5,6 +5,10 @@ using UnityEngine.EventSystems;
 
 public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler
 {
+    public Team Team; //new
+    public bool IsKing; //new
+
+
     // —сылка на клетку, на которой сейчас стоит юнит
     public Cell Cell { get; set; }
 
