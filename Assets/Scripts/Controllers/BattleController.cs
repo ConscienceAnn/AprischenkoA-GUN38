@@ -3,62 +3,92 @@ using System.Collections.Generic;
 using Zenject;
 using Unity.VisualScripting;
 using System.ComponentModel;
+using UnityEngine.InputSystem;
 
 public class BattleController : MonoBehaviour
 {
     [Inject] private CellManager _cellManager;
     [Inject] private CellPaletteSettings _palette;
-    //[Inject] private GameInput _gameInput;
+    [Inject] private GameInput _gameInput;
 
     [SerializeField] private Material KingMaterial;
 
     private Team _currentTeam = Team.Player1; // Player1 ходит первым
     private Unit _selectedUnit = null;
-    //private GameInput.GameActions _gameActions;
+    private GameInput.GameActions _gameActions;
 
-   // private bool _isInitialized = false;
-
-    [Inject]
-    //public void Initialize()
-    //{
-    //    // Этот метод вызовет Zenject после инъекции зависимостей
-    //    _isInitialized = true;
-
-    //    // Подписываемся на события
-    //    _cellManager.OnCellClicked.AddListener(OnCellClicked);
-
-    //    if (_gameInput != null)
-    //    {
-    //        _gameInput.Game.Cancel.started += OnCancel;
-    //        _gameInput.Game.Confirm.started += OnConfirm;
-    //        _gameInput.Game.Select.started += OnSelect;
-    //        _gameInput.Game.Enable();
-    //    }
-    //}
+   
     private void Start()
     {
 
-        _cellManager.OnCellClicked.AddListener(OnCellClicked);
+        _cellManager.OnCellClicked.AddListener(HandleCellClick);
+        InitializeInputSystem();
 
     }
 
-    //private void OnDestroy()
-    //{
-    //    // ОТПИШИСЬ от событий
-    //    if (_cellManager != null)
-    //        _cellManager.OnCellClicked.RemoveListener(OnCellClicked);
+    private void InitializeInputSystem()
+    {
+        _gameActions = _gameInput.Game;
 
-    //    if (_gameInput != null)
-    //    {
-    //        _gameInput.Game.Cancel.started -= OnCancel;
-    //        _gameInput.Game.Confirm.started -= OnConfirm;
-    //        _gameInput.Game.Select.started -= OnSelect;
-    //        _gameInput.Game.Disable();
-    //    }
-    //}
+        // ПОДПИСКА НА СОБЫТИЯ
+        _gameActions.Cancel.started += OnCancel;
+        _gameActions.Confirm.started += OnConfirm;
+        _gameActions.Select.started += OnSelect;
+
+        _gameActions.Enable();
+
+        Debug.Log("GameInput system initialized successfully");
+    }
+
+    private void OnDestroy()
+    {
+        // ОТПИСКА ОТ СОБЫТИЙ
+        if (_cellManager != null)
+            _cellManager.OnCellClicked.RemoveListener(HandleCellClick);
+
+        // Для GameActions проверяем не через null, а через IsValid()
+        if (_gameActions.enabled)
+        {
+            _gameActions.Cancel.started -= OnCancel;
+            _gameActions.Confirm.started -= OnConfirm;
+            _gameActions.Select.started -= OnSelect;
+            _gameActions.Disable();
+        }
+    }
+
+    // === INPUT HANDLERS ===
+    private void OnCancel(InputAction.CallbackContext context)
+    {
+        Debug.Log("Cancel pressed (ESC)");
+        ResetAllSelection();
+    }
+
+    private void OnConfirm(InputAction.CallbackContext context)
+    {
+        Debug.Log("Confirm pressed (Space)");
+        // Подтверждение хода не реализовано, так как в шашках ход совершается мгновенно.
+        // Кнопка Space зарезервирована под будущие механики (если потребуется).
+    }
+
+    private void OnSelect(InputAction.CallbackContext context)
+    {
+        Debug.Log("Select pressed (Left Mouse Button)");
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        Ray ray = Camera.main.ScreenPointToRay(mousePos);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            Cell cell = hit.collider.GetComponent<Cell>();
+            if (cell != null)
+            {
+                // Создаём команду и выполняем её
+                var command = new SelectCellCommand(this);
+                command.Interact(cell);
+            }
+        }
+    }
 
 
-    public void OnCellClicked(Cell cell)
+    public void HandleCellClick(Cell cell)
     {
         if (_selectedUnit == null)
         {
@@ -631,37 +661,6 @@ public class BattleController : MonoBehaviour
 
         Debug.Log($"King jump final: foundEnemy={foundEnemy}, enemyCell={enemyCell != null}");
         return foundEnemy;
-    }
-
-
-
-    private void OnCancel(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        Debug.Log("Cancel pressed (ESC)");
-        ResetAllSelection();
-    }
-
-    private void OnConfirm(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        Debug.Log("Confirm pressed (Space)");
-        // Пока не используем — можно оставить пустым
-        // Или добавить логику подтверждения хода
-    }
-
-    private void OnSelect(UnityEngine.InputSystem.InputAction.CallbackContext context)
-    {
-        Debug.Log("Select pressed (Left Mouse Button)");
-
-        // Проверяем, попали ли мы в клетку
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            Cell cell = hit.collider.GetComponent<Cell>();
-            if (cell != null)
-            {
-                OnCellClicked(cell); // Используем уже существующую логику
-            }
-        }
     }
 
 

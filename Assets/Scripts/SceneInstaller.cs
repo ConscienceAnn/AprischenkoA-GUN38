@@ -15,7 +15,6 @@ public class SceneInstaller : MonoInstaller
 
     public override void InstallBindings()
     {
-        // ПРОВЕРЬ и заполни эти поля в инспекторе!
         if (_cellManager == null)
         {
             Debug.LogError("CellManager is NOT assigned in SceneInstaller!");
@@ -28,21 +27,17 @@ public class SceneInstaller : MonoInstaller
             return;
         }
 
-        //if (_gameInput == null)
-        //{
-        //    Debug.LogError("GameInput is NULL! Create InputActions asset and assign it here.");
-        //    return;
-        //}
+        // СОЗДАЕМ GameInput ПРЯМО В КОДЕ
+        GameInput gameInput = new GameInput();
+        gameInput.Game.Enable();
 
         // Привязываем зависимости
         Container.BindInstance(_cellManager).AsSingle();
         Container.BindInstance(_cellPaletteSettings).AsSingle();
-        //Container.BindInstance(_gameInput).AsSingle();
+        Container.BindInstance(gameInput).AsSingle(); // Привязываем созданный экземпляр
 
-        // BattleController будет найден в иерархии
         Container.Bind<BattleController>().FromComponentInHierarchy().AsSingle();
-
-        Debug.Log("SceneInstaller: All dependencies bound successfully");
+        Debug.Log("SceneInstaller: All dependencies bound successfully with GameInput");
     }
 }
  
