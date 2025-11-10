@@ -9,31 +9,40 @@ public class SceneInstaller : MonoInstaller
 
     [SerializeField]
     private CellPaletteSettings _cellPaletteSettings;
+
+    //[SerializeField] private GameInput _gameInput;
+
+
     public override void InstallBindings()
     {
-        // 1. Создаём Controls
-        var controls = new GameControls();
-
-        // 2. Прокидываем ВЕСЬ объект Controls в контейнер (на случай, если понадобится)
-        Container.BindInstance(controls).AsSingle();
-
-        // 3. Прокидываем КАРТУ ЭКШЕНОВ (Game) — именно то, что нужно для InputManager
-        Container.BindInstance(controls.Game).AsSingle();
-
-        // 4. Другие биндинги
-        Container.BindInstance(_cellPaletteSettings).AsSingle();
-      //  Container.BindInstance(_cellManager).AsSingle();
-
-        // 5. Подписка на клик по клетке 
-        _cellManager.OnCellClicked.AddListener(cell =>
+        // ПРОВЕРЬ и заполни эти поля в инспекторе!
+        if (_cellManager == null)
         {
-            cell.SetSelect(_cellPaletteSettings.SelectCell);
-        });
-    }
+            Debug.LogError("CellManager is NOT assigned in SceneInstaller!");
+            return;
+        }
 
-    private void CellManagerOnOnCellClicked(Cell obj)
-    {
-        obj.SetSelect(_cellPaletteSettings.SelectCell);
-    }
+        if (_cellPaletteSettings == null)
+        {
+            Debug.LogError("CellPaletteSettings is NOT assigned in SceneInstaller!");
+            return;
+        }
 
+        //if (_gameInput == null)
+        //{
+        //    Debug.LogError("GameInput is NULL! Create InputActions asset and assign it here.");
+        //    return;
+        //}
+
+        // Привязываем зависимости
+        Container.BindInstance(_cellManager).AsSingle();
+        Container.BindInstance(_cellPaletteSettings).AsSingle();
+        //Container.BindInstance(_gameInput).AsSingle();
+
+        // BattleController будет найден в иерархии
+        Container.Bind<BattleController>().FromComponentInHierarchy().AsSingle();
+
+        Debug.Log("SceneInstaller: All dependencies bound successfully");
+    }
 }
+ 

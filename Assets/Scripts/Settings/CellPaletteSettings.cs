@@ -20,6 +20,6 @@ public class CellPaletteSettings : ScriptableObject
     [field: SerializeField]
     [field: Tooltip("Клетка доступная и для атаки и для движения")]
 
-    public Material MoveAndAttackCell { get; private set; }    
+    public Material MoveAndAttackCell { get; private set; }
 
 }

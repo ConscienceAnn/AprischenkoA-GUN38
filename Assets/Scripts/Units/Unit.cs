@@ -27,6 +27,7 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
         Cell?.OnPointerClick(eventData);
     }
 
+
     // Прокидываем уход курсора в клетку
     public void OnPointerExit(PointerEventData eventData)
     {

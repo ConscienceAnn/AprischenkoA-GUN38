@@ -23,6 +23,7 @@ public class CellManager : MonoBehaviour
 
         Debug.Log($"2 - Found {_cells.Count} cells");
 
+        DebugCoordinates();
 
         _units.AddRange(FindObjectsByType<Unit>(FindObjectsSortMode.None));
 
@@ -56,9 +57,9 @@ public class CellManager : MonoBehaviour
         Debug.Log("8 - After linking existing units");
 
         // Шаг 7: BuildNeighbours 
-        // Debug.Log("9 - Before BuildNeighbours");
-        // BuildNeighbours();
-        // Debug.Log("10 - After BuildNeighbours");
+         Debug.Log("9 - Before BuildNeighbours");
+         BuildNeighbours();
+        Debug.Log("10 - After BuildNeighbours");
 
         Debug.Log("11 - CellManager Start completed");
     }
@@ -145,41 +146,74 @@ public class CellManager : MonoBehaviour
         foreach (var cell in _cells)
         {
             Vector3 worldPos = cell.transform.position;
-            int x = Mathf.RoundToInt((worldPos.x + 14f) / 2f);
-            int y = Mathf.RoundToInt(worldPos.z / 2f);
+            Vector2Int coords = WorldToBoardCoords(worldPos); // ИСПОЛЬЗУЕМ ОБЩИЙ МЕТОД
+            int x = coords.x;
+            int y = coords.y;
 
-            // Получаем материал клетки чтобы определить цвет
             MeshRenderer cellRenderer = cell.GetComponent<MeshRenderer>();
             if (cellRenderer == null) continue;
 
-            Material cellMaterial = cellRenderer.material;
-
-            // Проверяем является ли клетка черной
-            bool isBlackCell = cellMaterial.name.Contains("BlackMaterial");
+            bool isBlackCell = cellRenderer.material.name.Contains("BlackMaterial");
 
             if (isBlackCell)
             {
-                // Игрок 1 (серые) - нижние 3 ряда: y = 0, 1, 2
-                if (y <= 2)
+                Debug.Log($"BLACK Cell at world({worldPos.x}, {worldPos.z}) -> indices({x}, {y})");
+
+                // Player1 (серые) — левые 3 столбца: x = 0, 1, 2
+                if (x <= 2)
                 {
                     SpawnUnit(cell, Team.Player1, grayMaterial);
                     grayUnits++;
-                    Debug.Log($"Spawned GRAY at ({x}, {y})");
                 }
-                // Игрок 2 (синие) - верхние 3 ряда: y = 5, 6, 7
-                else if (y >= 5)
+                // Player2 (синие) — правые 3 столбца: x = 5, 6, 7
+                else if (x >= 5)
                 {
                     SpawnUnit(cell, Team.Player2, blueMaterial);
                     blueUnits++;
-                    Debug.Log($"Spawned BLUE at ({x}, {y})");
                 }
             }
         }
 
         Debug.Log($"SetupCheckers completed: {grayUnits} gray, {blueUnits} blue units");
-
     }
 
+
+    private void DebugCoordinates()
+    {
+        Debug.Log("=== DEBUG COORDINATES ===");
+        int blackCellsLeft = 0;
+        int blackCellsRight = 0;
+
+        foreach (var cell in _cells)
+        {
+            Vector3 worldPos = cell.transform.position;
+            int x = Mathf.RoundToInt((worldPos.x + 14f) / 2f);
+            int y = Mathf.RoundToInt(worldPos.z / 2f);
+
+            MeshRenderer renderer = cell.GetComponent<MeshRenderer>();
+            if (renderer == null) continue;
+
+            bool isBlack = renderer.material.name.Contains("BlackMaterial");
+
+            if (isBlack)
+            {
+                if (x <= 2) blackCellsLeft++;
+                if (x >= 5) blackCellsRight++;
+
+                Debug.Log($"BLACK Cell at world({worldPos.x}, {worldPos.z}) -> indices({x}, {y})");
+            }
+        }
+
+        Debug.Log($"=== SUMMARY: {blackCellsLeft} black cells on left (x<=2), {blackCellsRight} black cells on right (x>=5) ===");
+    }
+
+
+    public Vector2Int WorldToBoardCoords(Vector3 worldPos)
+    {
+        int x = Mathf.RoundToInt((worldPos.x - 1f) / 2f);
+        int y = Mathf.RoundToInt(worldPos.z / 2f);
+        return new Vector2Int(x, y);
+    }
 
 }
 
