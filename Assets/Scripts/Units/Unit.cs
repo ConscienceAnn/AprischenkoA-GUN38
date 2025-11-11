@@ -5,36 +5,27 @@ using UnityEngine.EventSystems;
 
 public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler
 {
-    public Team Team; //new
-    public bool IsKing; //new
+    public Team Team; 
+    public bool IsKing; 
 
-
-    // Ссылка на клетку, на которой сейчас стоит юнит
     public Cell Cell { get; set; }
 
-    // Событие, вызываемое после завершения перемещения
     public event System.Action OnMoveEndCallback;
 
-    // Прокидываем событие наведения в клетку
     public void OnPointerEnter(PointerEventData eventData)
     {
         Cell?.OnPointerEnter(eventData);
     }
 
-    // Прокидываем клик в клетку
     public void OnPointerClick(PointerEventData eventData)
     {
         Cell?.OnPointerClick(eventData);
     }
-
-
-    // Прокидываем уход курсора в клетку
     public void OnPointerExit(PointerEventData eventData)
     {
         Cell?.OnPointerExit(eventData);
     }
 
-    // Перемещает юнита на указанную клетку
     public void Move(Cell targetCell)
     {
         if (targetCell == null)
@@ -43,21 +34,17 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
             return;
         }
 
-        // Отвязываем юнита от старой клетки (если была)
         if (Cell != null)
         {
             Cell.Unit = null;
         }
 
-        // Привязываем к новой клетке
         Cell = targetCell;
         targetCell.Unit = this;
 
-        // Запускаем плавное перемещение
         StartCoroutine(MoveToPosition(targetCell.transform.position));
     }
 
-    // Вспомогательный корутин для плавного перемещения
     private System.Collections.IEnumerator MoveToPosition(Vector3 targetPosition)
     {
         Vector3 startPosition = transform.position;
@@ -71,10 +58,8 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
             yield return null;
         }
 
-        // Гарантируем точное попадание в конечную позицию
         transform.position = targetPosition;
 
-        // Вызываем событие завершения движения
         OnMoveEndCallback?.Invoke();
     }
 }

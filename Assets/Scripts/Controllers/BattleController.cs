@@ -91,7 +91,7 @@ public class BattleController : MonoBehaviour
         }
         else
         {
-            // Получаем возможные ходы (обычные или только прыжки)
+
             List<Cell> possibleMoves = GetPossibleMoves(_selectedUnit);
 
             if (possibleMoves.Contains(cell))
@@ -144,7 +144,6 @@ public class BattleController : MonoBehaviour
         List<Cell> moves = new();
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
 
-        // Сначала ищем прыжки
         foreach (var cell in allCells)
         {
             if (CanJumpOver(unit, cell, out _))
@@ -153,11 +152,9 @@ public class BattleController : MonoBehaviour
             }
         }
 
-        // Если есть прыжки — возвращаем только их
         if (moves.Count > 0)
             return moves;
 
-        // Иначе — обычные ходы
         foreach (var cell in allCells)
         {
             if (cell.Unit == null && IsDiagonalForward(unit, cell))
@@ -188,12 +185,10 @@ public class BattleController : MonoBehaviour
 
         if (unit.Team == Team.Player1)
         {
-            // Player1 (слева) движется ВПРАВО (увеличивать X)
             return dx > 0;
         }
         else
         {
-            // Player2 (справа) движется ВЛЕВО (уменьшать X)
             return dx < 0;
         }
     }
@@ -205,10 +200,7 @@ public class BattleController : MonoBehaviour
         float dx = to.x - from.x;
         float dz = to.z - from.z;
 
-        // Проверяем что это диагональ 
         bool isDiagonal = Mathf.Abs(Mathf.Abs(dx) - Mathf.Abs(dz)) < 0.1f;
-
-        // И что это не та же клетка
         bool notSameCell = Mathf.Abs(dx) > 0.1f;
 
         Debug.Log($"Diagonal check: x={dx}, z={dz}, isDiagonal={isDiagonal}, notSameCell={notSameCell}");
@@ -223,20 +215,15 @@ public class BattleController : MonoBehaviour
 
         if (unit.IsKing)
         {
-            Debug.Log($"Highlighting moves for KING at {unit.Cell.transform.position}");
 
             var kingMoves = GetKingMoves(unit);
             var jumpMoves = GetKingJumpMoves(unit);
 
-            Debug.Log($"King has {kingMoves.Count} total moves, {jumpMoves.Count} jumps");
-
-            // Прыжки - красный
             foreach (var cell in jumpMoves)
             {
                 cell.SetSelect(_palette.AttackCell);
             }
 
-            // Обычные ходы - зеленый (только если нет прыжков)
             if (jumpMoves.Count == 0)
             {
                 foreach (var cell in kingMoves)
@@ -248,9 +235,7 @@ public class BattleController : MonoBehaviour
             return;
         }
 
-        // === ИСПРАВЛЕНИЕ ДЛЯ ОБЫЧНЫХ ШАШЕК ===
 
-        // Сначала ищем прыжки
         List<Cell> jumpMovesNormal = new List<Cell>();
         foreach (var cell in allCells)
         {
@@ -260,7 +245,7 @@ public class BattleController : MonoBehaviour
             }
         }
 
-        // Если есть прыжки - подсвечиваем ТОЛЬКО их красным
+
         if (jumpMovesNormal.Count > 0)
         {
             foreach (var cell in jumpMovesNormal)
@@ -271,7 +256,7 @@ public class BattleController : MonoBehaviour
             return;
         }
 
-        // Если прыжков нет - подсвечиваем обычные ходы зеленым
+
         foreach (var cell in allCells)
         {
             if (cell.Unit == null && IsDiagonalForward(unit, cell))
@@ -286,14 +271,6 @@ public class BattleController : MonoBehaviour
         }
     }
 
-    //private void HighlightJumpMoves(Unit unit)
-    //{
-    //    var jumps = GetJumpMoves(unit);
-    //    foreach (var cell in jumps)
-    //    {
-    //        cell.SetSelect(_palette.AttackCell);
-    //    }
-    //}
 
     private void MoveUnit(Unit unit, Cell targetCell)
     {
@@ -366,14 +343,13 @@ public class BattleController : MonoBehaviour
 
     private void ResetAllSelection()
     {
-        // Снимаем выделение с текущей шашки
+
         if (_selectedUnit != null)
         {
             UnhighlightSelectedUnit(_selectedUnit);
             _selectedUnit = null;
         }
 
-        // Очищаем подсветки ходов
         ClearHighlights();
     }
 

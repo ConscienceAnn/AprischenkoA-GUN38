@@ -4,7 +4,6 @@ using UnityEngine.Events;
 
 public class CellManager : MonoBehaviour
 {
-    // Событие для подписки извне (например, GameInstaller)
     public UnityEvent<Cell> OnCellClicked = new();
 
     private List<Cell> _cells = new();
@@ -16,34 +15,19 @@ public class CellManager : MonoBehaviour
     [SerializeField] private Material grayMaterial;
     private void Start()
     {
-
-        Debug.Log("1 - CellManager Start");
-
         _cells.AddRange(FindObjectsByType<Cell>(FindObjectsSortMode.None));
-
-        Debug.Log($"2 - Found {_cells.Count} cells");
 
         DebugCoordinates();
 
         _units.AddRange(FindObjectsByType<Unit>(FindObjectsSortMode.None));
 
-        Debug.Log($"3 - Found {_units.Count} units");
-
-
-        // Шаг 4: Подписка на события 
-         Debug.Log("4 - Subscribing to events");
           foreach (var cell in _cells)
          {
              cell.OnPointerClickEvent += OnCellClicked.Invoke;
         }
 
-        //Передаём материалы как аргументы
-        Debug.Log("5 - Before SetupCheckers");
         SetupCheckers(blueMaterial, grayMaterial);
-        Debug.Log("6 - After SetupCheckers");
 
-
-        Debug.Log("7 - Before linking existing units");
         foreach (var unit in _units)
         {
             Cell cell = FindCellAtPosition(unit.transform.position);
@@ -54,17 +38,10 @@ public class CellManager : MonoBehaviour
             }
         }
 
-        Debug.Log("8 - After linking existing units");
-
-        // Шаг 7: BuildNeighbours 
-         Debug.Log("9 - Before BuildNeighbours");
          BuildNeighbours();
-        Debug.Log("10 - After BuildNeighbours");
-
-        Debug.Log("11 - CellManager Start completed");
     }
 
-    // Находит клетку по позиции (с небольшой погрешностью)
+
     private Cell FindCellAtPosition(Vector3 position)
     {
         foreach (var cell in _cells)
@@ -75,7 +52,7 @@ public class CellManager : MonoBehaviour
         return null;
     }
 
-    // Строит соседей для всех клеток
+
     private void BuildNeighbours()
     {
         foreach (var cell in _cells)
@@ -89,8 +66,8 @@ public class CellManager : MonoBehaviour
                 Vector3 otherPos = other.transform.position;
                 Vector3 delta = otherPos - cellPos;
 
-                // Пока шаг 1, но это не точно
-                if (Mathf.Abs(delta.magnitude - 1f) < 0.1f) // сосед на расстоянии ~1
+
+                if (Mathf.Abs(delta.magnitude - 1f) < 0.1f)
                 {
                     NeighbourType type = NeighbourType.None;
 
@@ -111,42 +88,30 @@ public class CellManager : MonoBehaviour
     private void SpawnUnit(Cell cell, Team team, Material mat)
     {
 
-        Debug.Log($"Spawning unit for team {team} at position {cell.transform.position}");
-
-        // Поднимаем позицию юнита над клеткой
-        //Vector3 unitPosition = cell.transform.position + Vector3.up * 1f;
-
-
-        // Создаём копию префаба юнита
         GameObject unitObj = Instantiate(unitPrefab, cell.transform.position, Quaternion.identity);
         unitObj.transform.position = cell.transform.position + Vector3.up * 1f;
 
-        // Находим компонент Unit
-        Unit unit = unitObj.GetComponent<Unit>();
-        unit.Team = team; // запоминаем команду
 
-        // Меняем цвет
+        Unit unit = unitObj.GetComponent<Unit>();
+        unit.Team = team; 
+
         unitObj.GetComponent<MeshRenderer>().material = mat;
 
-        // Связываем юнит и клетку
         unit.Cell = cell;
         cell.Unit = unit;
         _units.Add(unit);
-
-        Debug.Log($"Unit spawned successfully");
     }
 
 
     public void SetupCheckers(Material blueMaterial, Material grayMaterial)
     {
-        Debug.Log("SetupCheckers started");
         int grayUnits = 0;
         int blueUnits = 0;
 
         foreach (var cell in _cells)
         {
             Vector3 worldPos = cell.transform.position;
-            Vector2Int coords = WorldToBoardCoords(worldPos); // ИСПОЛЬЗУЕМ ОБЩИЙ МЕТОД
+            Vector2Int coords = WorldToBoardCoords(worldPos);
             int x = coords.x;
             int y = coords.y;
 
@@ -173,14 +138,11 @@ public class CellManager : MonoBehaviour
                 }
             }
         }
-
-        Debug.Log($"SetupCheckers completed: {grayUnits} gray, {blueUnits} blue units");
     }
 
 
     private void DebugCoordinates()
     {
-        Debug.Log("=== DEBUG COORDINATES ===");
         int blackCellsLeft = 0;
         int blackCellsRight = 0;
 
@@ -199,12 +161,8 @@ public class CellManager : MonoBehaviour
             {
                 if (x <= 2) blackCellsLeft++;
                 if (x >= 5) blackCellsRight++;
-
-                Debug.Log($"BLACK Cell at world({worldPos.x}, {worldPos.z}) -> indices({x}, {y})");
             }
         }
-
-        Debug.Log($"=== SUMMARY: {blackCellsLeft} black cells on left (x<=2), {blackCellsRight} black cells on right (x>=5) ===");
     }
 
 
