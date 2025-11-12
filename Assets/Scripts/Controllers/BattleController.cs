@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using Zenject;
 using UnityEngine.InputSystem;
+using System.Linq;
+using Unity.VisualScripting;
 
 public class BattleController : MonoBehaviour
 {
@@ -15,12 +17,16 @@ public class BattleController : MonoBehaviour
     private Unit _selectedUnit = null;
     private GameInput.GameActions _gameActions;
 
-   
+    private List<Unit> _unitsWithJumps = new List<Unit>();
+    private bool _mustAttack = false;
+
+
     private void Start()
     {
 
         _cellManager.OnCellClicked.AddListener(HandleCellClick);
         InitializeInputSystem();
+        CleanupDestroyedUnits();
 
     }
 
@@ -78,37 +84,94 @@ public class BattleController : MonoBehaviour
 
     public void HandleCellClick(Cell cell)
     {
+        Debug.Log($"=== HandleCellClick ===");
+        Debug.Log($"Click on cell at {cell.transform.position}");
+
+        Vector2Int cellCoords = _cellManager.WorldToBoardCoords(cell.transform.position);
+        Debug.Log($"Координаты клетки: ({cellCoords.x},{cellCoords.y})");
+
+        Debug.Log($"Состояние: _selectedUnit={_selectedUnit != null}, _mustAttack={_mustAttack}, _unitsWithJumps.Count={_unitsWithJumps.Count}");
+
+        // Логируем содержимое _unitsWithJumps
+        Debug.Log($"Шашки с прыжками ({_unitsWithJumps.Count}):");
+        foreach (var unit in _unitsWithJumps)
+        {
+            if (IsUnitValid(unit))
+            {
+                Vector2Int coords = _cellManager.WorldToBoardCoords(unit.Cell.transform.position);
+                Debug.Log($"  - {unit.Team} at ({coords.x},{coords.y})");
+            }
+            else
+            {
+                Debug.Log($"  - Уничтожённый юнит (удаляю из списка)");
+            }
+        }
+
+        _unitsWithJumps.RemoveAll(u => !IsUnitValid(u));
+
+        // Если есть обязательная атака и мы не в серии прыжков - проверяем выбор
         if (_selectedUnit == null)
         {
-            // Обычный выбор шашки
             if (cell.Unit != null && cell.Unit.Team == _currentTeam)
             {
+                Debug.Log($"Клик на свою шашку: {cell.Unit.Team} at {cell.transform.position}");
+                Vector2Int unitCoords = _cellManager.WorldToBoardCoords(cell.Unit.Cell.transform.position);
+                Debug.Log($"Координаты шашки: ({unitCoords.x},{unitCoords.y})");
+
+                if (_mustAttack)
+                {
+                    bool canAttack = _unitsWithJumps.Contains(cell.Unit);
+                    Debug.Log($"Обязательная атака! Эта шашка может атаковать: {canAttack}");
+
+                    if (!canAttack)
+                    {
+                        Debug.Log("ОШИБКА: Должны выбрать шашку, которая может атаковать!");
+                        if (cell.Unit != null)
+                            DebugUnitPosition(cell.Unit, "Попытка выбора");
+                        else
+                            Debug.Log("Юнит был уничтожен!");
+                        return;
+                    }
+                }
+
                 ResetAllSelection();
                 _selectedUnit = cell.Unit;
                 HighlightSelectedUnit(_selectedUnit);
                 HighlightPossibleMoves(_selectedUnit);
+
+                DebugUnitPosition(_selectedUnit, "Выбрана шашка");
             }
         }
         else
         {
-
             List<Cell> possibleMoves = GetPossibleMoves(_selectedUnit);
 
             if (possibleMoves.Contains(cell))
             {
                 MoveUnit(_selectedUnit, cell);
-                // MoveUnit сам решит: продолжать ход или передавать
             }
             else if (cell.Unit != null && cell.Unit.Team == _currentTeam)
             {
-                ResetAllSelection();
-                _selectedUnit = cell.Unit;
-                HighlightSelectedUnit(_selectedUnit);
-                HighlightPossibleMoves(_selectedUnit);
+                // Разрешаем перевыбор только если нет обязательной атаки ИЛИ эта шашка может атаковать
+                if (!_mustAttack || _unitsWithJumps.Contains(cell.Unit))
+                {
+                    ResetAllSelection();
+                    _selectedUnit = cell.Unit;
+                    HighlightSelectedUnit(_selectedUnit);
+                    HighlightPossibleMoves(_selectedUnit);
+                }
+                else
+                {
+                    Debug.Log("Нельзя перевыбрать: обязательная атака другой шашкой!");
+                }
             }
             else
             {
+                // Отмена выбора
                 ResetAllSelection();
+                // После отмены снова показываем возможные атаки
+                if (_mustAttack)
+                    PrepareTurn();
             }
         }
     }
@@ -137,6 +200,7 @@ public class BattleController : MonoBehaviour
 
     private List<Cell> GetPossibleMoves(Unit unit)
     {
+        if (!IsUnitValid(unit)) return new List<Cell>();
 
         if (unit.IsKing)
             return GetKingMoves(unit);
@@ -211,6 +275,8 @@ public class BattleController : MonoBehaviour
 
     private void HighlightPossibleMoves(Unit unit)
     {
+        if (!IsUnitValid(unit)) return;
+
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
 
         if (unit.IsKing)
@@ -274,21 +340,25 @@ public class BattleController : MonoBehaviour
 
     private void MoveUnit(Unit unit, Cell targetCell)
     {
+        if (!IsUnitValid(unit)) return;
+
         bool wasJump = false;
         Cell enemyCell = null;
 
         if (unit.IsKing)
-        {
             wasJump = CanKingJumpOver(unit, targetCell, out enemyCell);
-        }
         else
-        {
             wasJump = CanJumpOver(unit, targetCell, out enemyCell);
-        }
 
+        // Убираем вражескую шашку при прыжке
         if (wasJump && enemyCell != null)
         {
-            Destroy(enemyCell.Unit.gameObject);
+            Debug.Log($"Уничтожена шашка противника на {enemyCell.transform.position}");
+            if (_unitsWithJumps.Contains(enemyCell.Unit))
+            {
+                _unitsWithJumps.Remove(enemyCell.Unit);
+            }
+            DestroyUnit(enemyCell.Unit);
             enemyCell.Unit = null;
         }
 
@@ -298,117 +368,222 @@ public class BattleController : MonoBehaviour
         unit.Cell = targetCell;
         unit.transform.position = targetCell.transform.position + Vector3.up * 1f;
 
-        // Проверка на дамку
+        // Проверка на превращение в дамку
         if (!unit.IsKing && IsOnOppositeEdge(unit))
         {
             unit.IsKing = true;
             HighlightAsKing(unit);
+            Debug.Log($"Шашка превратилась в дамку! {unit.Team} at {targetCell.transform.position}");
         }
 
-        // ЛОГИКА СЕРИИ АТАК (ОБНОВЛЕННАЯ)
+        // === ЛОГИКА СЕРИИ ПРЫЖКОВ ===
         if (wasJump)
         {
-            List<Cell> nextJumps;
-            if (unit.IsKing)
-            {
-                nextJumps = GetKingJumpMoves(unit);
-            }
-            else
-            {
-                nextJumps = GetJumpMoves(unit);
-            }
+            List<Cell> nextJumps = unit.IsKing ? GetKingJumpMoves(unit) : GetJumpMoves(unit);
+
+            Debug.Log($"После прыжка: следующих прыжков доступно: {nextJumps.Count}");
 
             if (nextJumps.Count > 0)
             {
+                // Продолжаем серию прыжков
                 _selectedUnit = unit;
                 HighlightSelectedUnit(unit);
                 ClearHighlights();
 
+                // Подсвечиваем только следующие прыжки
                 foreach (var cell in nextJumps)
-                {
                     cell.SetSelect(_palette.AttackCell);
-                }
-                return; // НЕ переключаем ход, игрок продолжает прыжки
+
+                Debug.Log($"Продолжение серии прыжков: {nextJumps.Count} возможных ходов");
+
+                // ОБНОВЛЯЕМ список шашек с прыжками - теперь только эта шашка может ходить
+                _unitsWithJumps.Clear();
+                _unitsWithJumps.Add(unit);
+                _mustAttack = true;
+
+                Debug.Log($"Обновили _unitsWithJumps: теперь только 1 шашка может ходить");
+
+                return; // Не переключаем ход
             }
         }
 
+        // Завершаем ход (если не было продолжения прыжков)
+        Debug.Log("Завершение хода");
         ResetAllSelection();
         SwitchTurn();
     }
 
     private void SwitchTurn()
     {
+        Debug.Log($"=== SwitchTurn: {_currentTeam} -> {(_currentTeam == Team.Player1 ? Team.Player2 : Team.Player1)} ===");
+        ResetAllSelection();
+        var allUnits = FindObjectsByType<Unit>(FindObjectsSortMode.None);
+        foreach (var unit in allUnits)
+        {
+            if (unit == null || !unit.gameObject.activeInHierarchy || unit.Cell == null)
+            {
+                // Нашли "мертвую" шашку - уничтожаем
+                if (unit != null && unit.gameObject != null)
+                    Destroy(unit.gameObject);
+            }
+        }
+
         _currentTeam = _currentTeam == Team.Player1 ? Team.Player2 : Team.Player1;
+        Debug.Log($"=== СМЕНА ХОДА: теперь ходит {_currentTeam} ===");
+
+        // ВАЖНО: Сбрасываем состояние перед подготовкой нового хода
+        Debug.Log("Сбрасываем состояние: _selectedUnit, _mustAttack, _unitsWithJumps");
+        _selectedUnit = null;
+        _mustAttack = false;
+        _unitsWithJumps.Clear();
+
+        PrepareTurn();
+        CleanupDestroyedUnits();
     }
 
     private void ResetAllSelection()
     {
-
+        // Сбрасываем выбранную шашку
         if (_selectedUnit != null)
         {
             UnhighlightSelectedUnit(_selectedUnit);
             _selectedUnit = null;
         }
 
+        // Сбрасываем подсветку шашек с атакующими ходами
+
+        // ОЧИЩАЕМ список от уничтоженных юнитов ПЕРЕД использованием
+        _unitsWithJumps.RemoveAll(unit => unit == null);
+
+        foreach (var unit in _unitsWithJumps)
+        {
+            UnhighlightAttackUnit(unit);
+        }
+
         ClearHighlights();
+        _unitsWithJumps.Clear();
+        _mustAttack = false;
     }
 
 
     private bool CanJumpOver(Unit unit, Cell targetCell, out Cell enemyCell)
     {
+
         enemyCell = null;
 
-        if (targetCell.Unit != null) return false;
+        // Целевая клетка должна быть пустой - ЭТО ОЧЕНЬ ВАЖНО!
+        if (targetCell.Unit != null)
+        {
+            Debug.Log($"Целевая клетка занята - прыжок невозможен");
+            return false;
+        }
 
         Vector3 from = unit.Cell.transform.position;
         Vector3 to = targetCell.transform.position;
+
+        // Получаем координаты доски для проверки направления
+        Vector2Int fromCoords = _cellManager.WorldToBoardCoords(from);
+        Vector2Int toCoords = _cellManager.WorldToBoardCoords(to);
+
+        // Вектор прыжка
         Vector3 jumpDir = to - from;
 
-        if (Mathf.Abs(jumpDir.magnitude - Mathf.Sqrt(32)) > 0.1f) return false;
+        // Прыжок должен быть на 2 клетки по диагонали
+        if (Mathf.Abs(jumpDir.magnitude - Mathf.Sqrt(32)) > 0.1f)
+        {
+            Debug.Log($"Неправильное расстояние для прыжка: {jumpDir.magnitude}");
+            return false;
+        }
 
+        // Направление на одну клетку
         Vector3 stepDir = new Vector3(
             Mathf.Sign(jumpDir.x) * 2f,
             0,
             Mathf.Sign(jumpDir.z) * 2f
         );
 
+        // Позиция вражеской клетки (между from и to)
         Vector3 enemyPos = from + stepDir;
 
+        // Находим вражескую клетку
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
         foreach (var cell in allCells)
         {
             if (Vector3.Distance(cell.transform.position, enemyPos) < 0.1f)
             {
+                // Это должна быть вражеская шашка
                 if (cell.Unit != null && cell.Unit.Team != unit.Team)
                 {
                     enemyCell = cell;
+
+                    //// ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: для обычных шашек проверяем направление
+                    //if (!unit.IsKing)
+                    //{
+                    //    if (unit.Team == Team.Player1 && toCoords.x <= fromCoords.x)
+                    //    {
+                    //        Debug.Log("Player1 может прыгать только вперед (вправо)");
+                    //        return false;
+                    //    }
+                    //    else if (unit.Team == Team.Player2 && toCoords.x >= fromCoords.x)
+                    //    {
+                    //        Debug.Log("Player2 может прыгать только вперед (влево)");
+                    //        return false;
+                    //    }
+                    //}
+
+                    Debug.Log($"Найден враг! Прыжок возможен с ({fromCoords.x},{fromCoords.y}) на ({toCoords.x},{toCoords.y})");
                     return true;
+                }
+                else if (cell.Unit != null)
+                {
+                    Debug.Log("На пути своя шашка - прыжок невозможен");
+                    return false;
+                }
+                else
+                {
+                    Debug.Log("На пути пустая клетка - прыжок невозможен");
+                    return false;
                 }
             }
         }
 
+        Debug.Log("Не найдена промежуточная клетка для прыжка");
         return false;
     }
 
 
     private List<Cell> GetJumpMoves(Unit unit)
     {
+        if (!IsUnitValid(unit)) return new List<Cell>();
+
         List<Cell> jumps = new();
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
 
+        Debug.Log($"=== GetJumpMoves для {unit.Team} at {unit.Cell.transform.position} ===");
+
+        Vector2Int unitCoords = _cellManager.WorldToBoardCoords(unit.Cell.transform.position);
+        Debug.Log($"Позиция шашки на доске: ({unitCoords.x},{unitCoords.y})");
+
         foreach (var cell in allCells)
         {
-            if (CanJumpOver(unit, cell, out _))
+            Vector2Int cellCoords = _cellManager.WorldToBoardCoords(cell.transform.position);
+
+            if (CanJumpOver(unit, cell, out Cell enemyCell))
             {
                 jumps.Add(cell);
+                Vector2Int enemyCoords = _cellManager.WorldToBoardCoords(enemyCell.transform.position);
+                Debug.Log($"  Найден прыжок: ({unitCoords.x},{unitCoords.y}) -> ({cellCoords.x},{cellCoords.y}) через врага на ({enemyCoords.x},{enemyCoords.y})");
             }
         }
 
+        Debug.Log($"GetJumpMoves для {unit.Team} at {unit.Cell.transform.position}: найдено {jumps.Count} прыжков");
         return jumps;
     }
 
     private bool IsOnOppositeEdge(Unit unit)
     {
+        if (!IsUnitValid(unit)) return false;
+
         Vector3 worldPos = unit.Cell.transform.position;
 
         Vector2Int coords = _cellManager.WorldToBoardCoords(worldPos);
@@ -438,6 +613,8 @@ public class BattleController : MonoBehaviour
 
     private List<Cell> GetKingMoves(Unit unit)
     {
+        if (!IsUnitValid(unit)) return new List<Cell>();
+
         List<Cell> moves = new();
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
 
@@ -486,7 +663,7 @@ public class BattleController : MonoBehaviour
                     {
                         return false;
                     }
-                    break; 
+                    break;
                 }
             }
         }
@@ -495,6 +672,8 @@ public class BattleController : MonoBehaviour
 
     private List<Cell> GetKingJumpMoves(Unit unit)
     {
+        if (!IsUnitValid(unit)) return new List<Cell>();
+
         List<Cell> jumps = new List<Cell>();
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
 
@@ -605,5 +784,191 @@ public class BattleController : MonoBehaviour
         }
         return null;
     }
+
+    private void HighlightAttackUnit(Unit unit)
+    {
+        Vector3 currentPos = unit.transform.position;
+        unit.transform.position = new Vector3(currentPos.x, currentPos.y + 0.3f, currentPos.z); // Меньше, чем для selected (0.5f), чтобы отличать
+    }
+
+    private void UnhighlightAttackUnit(Unit unit)
+    {
+        Vector3 currentPos = unit.transform.position;
+        float baseHeight = unit.Cell.transform.position.y + 1f;
+        unit.transform.position = new Vector3(currentPos.x, baseHeight, currentPos.z);
+    }
+
+    private void PrepareTurn()
+    {
+        //var allUnits = FindObjectsByType<Unit>(FindObjectsSortMode.None);
+
+        
+        _unitsWithJumps.Clear();
+        _mustAttack = false;
+
+        System.GC.Collect();
+
+        var allUnits = FindObjectsByType<Unit>(FindObjectsSortMode.None)
+        .Where(u => u != null && u.gameObject != null && u.gameObject.activeInHierarchy && u.Cell != null)
+        .ToArray();
+
+        Debug.Log($"=== PrepareTurn для {_currentTeam} ===");
+        Debug.Log($"Всего шашек на поле: {allUnits.Length}");
+
+        ClearHighlights();
+        // Сначала сбрасываем подсветку всех шашек и клеток
+        foreach (var unit in allUnits)
+        {
+            // ДОБАВИТЬ ПРОВЕРКУ: unit должен быть активен и не уничтожен
+            if (unit == null || !unit.gameObject.activeInHierarchy || unit.Cell == null)
+                continue;
+
+            if (unit.Team == _currentTeam)
+            {
+                UnhighlightAttackUnit(unit);
+            }
+        }
+        ClearHighlights(); // Очищаем подсветку клеток
+
+        // Проверяем все шашки текущего игрока на наличие прыжков
+        int currentTeamUnits = 0;
+        foreach (var unit in allUnits)
+        {
+            // УСИЛИТЬ ПРОВЕРКУ: unit должен быть активен, не уничтожен, и иметь клетку
+            if (unit == null || !unit.gameObject.activeInHierarchy || unit.Cell == null || unit.Team != _currentTeam || unit.gameObject == null)
+                continue;
+
+            currentTeamUnits++;
+            Vector2Int coords = _cellManager.WorldToBoardCoords(unit.Cell.transform.position);
+            Debug.Log($"Проверяем шашку: {unit.Team} at ({coords.x},{coords.y}) - King: {unit.IsKing}");
+
+            List<Cell> jumps;
+            if (unit.IsKing)
+                jumps = GetKingJumpMoves(unit);
+            else
+                jumps = GetJumpMoves(unit);
+
+            Debug.Log($"Шашка {unit.Team} at {unit.Cell.transform.position} - прыжков: {jumps.Count}");
+
+            if (jumps.Count > 0)
+            {
+                _unitsWithJumps.Add(unit);
+                HighlightAttackUnit(unit); // Приподнимаем шашку
+                _mustAttack = true;
+                Debug.Log($"ДОБАВЛЕНА в _unitsWithJumps: {unit.Team} at {unit.Cell.transform.position}");
+
+                // СРАЗУ ПОДСВЕЧИВАЕМ КЛЕТКИ ДЛЯ ПРЫЖКА КРАСНЫМ ЦВЕТОМ
+                foreach (var jumpCell in jumps)
+                {
+                    jumpCell.SetSelect(_palette.AttackCell);
+                    Vector2Int jumpCoords = _cellManager.WorldToBoardCoords(jumpCell.transform.position);
+                    Debug.Log($"  -> Подсвечена клетка для прыжка: ({jumpCoords.x},{jumpCoords.y})");
+                }
+            }
+        }
+
+        Debug.Log($"Всего шашек {_currentTeam}: {currentTeamUnits}");
+        Debug.Log($"Итог: {_unitsWithJumps.Count} шашек могут атаковать, обязательная атака: {_mustAttack}");
+
+        // Выведем список всех шашек которые могут атаковать
+        foreach (var unit in _unitsWithJumps)
+        {
+            if (unit != null && unit.Cell != null)
+            {
+                Vector2Int coords = _cellManager.WorldToBoardCoords(unit.Cell.transform.position);
+                Debug.Log($"Может атаковать: {unit.Team} at ({coords.x},{coords.y})");
+            }
+        }
+    }
+
+    private void DebugUnitPosition(Unit unit, string action)
+    {
+
+        if (!IsUnitValid(unit))
+        {
+            Debug.Log($"{action}: ЮНИТ НЕВАЛИДЕН!");
+            return;
+        }
+
+        Vector3 pos = unit.Cell.transform.position;
+        Vector2Int coords = _cellManager.WorldToBoardCoords(pos);
+        Debug.Log($"{action}: {unit.Team} at WORLD({pos.x:F1}, {pos.z:F1}) -> BOARD({coords.x},{coords.y}) - King: {unit.IsKing}");
+    }
+
+    private bool IsUnitValid(Unit unit)
+    {
+        return unit != null && unit.gameObject != null && unit.Cell != null;
+    }
+
+    private void DestroyUnit(Unit unit)
+    {
+        if (unit == null) return;
+
+        Debug.Log($" УНИЧТОЖАЕМ ШАШКУ: {unit.Team} at {unit.Cell?.transform.position}");
+
+        // 1. Удаляем из всех списков
+        if (_unitsWithJumps.Contains(unit))
+        {
+            _unitsWithJumps.Remove(unit);
+            Debug.Log($"   Удалена из _unitsWithJumps");
+        }
+
+        if (_selectedUnit == unit)
+        {
+            _selectedUnit = null;
+            Debug.Log($"   Сброшен _selectedUnit");
+        }
+
+        // 2. ОЧИЩАЕМ ССЫЛКУ НА КЛЕТКЕ (ВАЖНО!)
+        if (unit.Cell != null && unit.Cell.Unit == unit)
+        {
+            unit.Cell.Unit = null;
+            Debug.Log($"   Очищена ссылка на клетке {unit.Cell.transform.position}");
+        }
+
+        // 3. Деактивируем перед уничтожением
+        if (unit.gameObject != null)
+        {
+            unit.gameObject.SetActive(false);
+            Debug.Log($"   Деактивирован gameObject");
+
+            // 4. Уничтожаем
+            Destroy(unit.gameObject);
+            Debug.Log($"   Уничтожен gameObject");
+        }
+
+        Debug.Log($"ШАШКА ПОЛНОСТЬЮ УНИЧТОЖЕНА");
+        CleanupDestroyedUnits();
+    }
+
+
+    private void CleanupDestroyedUnits()
+    {
+        var allUnits = FindObjectsByType<Unit>(FindObjectsSortMode.None);
+        int destroyedCount = 0;
+
+        foreach (var unit in allUnits)
+        {
+            if (unit == null) continue;
+
+            // Более безопасная проверка без вызова DestroyUnit (чтобы избежать рекурсии)
+            if (unit.gameObject == null || !unit.gameObject.activeInHierarchy)
+            {
+                // Просто уничтожаем без вызова полного метода
+                Destroy(unit.gameObject);
+                destroyedCount++;
+            }
+            else if (unit.Cell == null)
+            {
+                // Шашка без клетки - явно мертвая
+                Destroy(unit.gameObject);
+                destroyedCount++;
+            }
+        }
+
+        if (destroyedCount > 0)
+            Debug.Log($"Очищено {destroyedCount} мертвых юнитов");
+    }
+
 
 }
