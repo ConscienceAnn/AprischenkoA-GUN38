@@ -48,7 +48,7 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
     private System.Collections.IEnumerator MoveToPosition(Vector3 targetPosition)
     {
         Vector3 startPosition = transform.position;
-        float duration = 0.3f; // время перемещения в секундах
+        float duration = 0.3f; 
         float elapsed = 0f;
 
         while (elapsed < duration)

@@ -77,7 +77,6 @@ public class InputManager : MonoBehaviour
 
             if (_fillTimer >= _fillDuration)
             {
-                // Автоматическая перезагрузка при полном заполнении
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }

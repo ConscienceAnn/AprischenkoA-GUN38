@@ -11,6 +11,8 @@ public class BattleController : MonoBehaviour
     [Inject] private CellPaletteSettings _palette;
     [Inject] private GameInput _gameInput;
 
+    public event System.Action<Team> OnTurnChanged;
+
     [SerializeField] private Material KingMaterial;
 
     private Team _currentTeam = Team.Player1; // Player1 ходит первым
@@ -62,7 +64,7 @@ public class BattleController : MonoBehaviour
     {
         Debug.Log("Confirm pressed (Space)");
         // Подтверждение хода не реализовано, так как в шашках ход совершается мгновенно.
-        // Кнопка Space зарезервирована под будущие механики (если потребуется).
+        // Кнопка Space видимо зарезервирована например под будущие механики (если потребуется).
     }
 
     private void OnSelect(InputAction.CallbackContext context)
@@ -92,7 +94,6 @@ public class BattleController : MonoBehaviour
 
         Debug.Log($"Состояние: _selectedUnit={_selectedUnit != null}, _mustAttack={_mustAttack}, _unitsWithJumps.Count={_unitsWithJumps.Count}");
 
-        // Логируем содержимое _unitsWithJumps
         Debug.Log($"Шашки с прыжками ({_unitsWithJumps.Count}):");
         foreach (var unit in _unitsWithJumps)
         {
@@ -109,7 +110,7 @@ public class BattleController : MonoBehaviour
 
         _unitsWithJumps.RemoveAll(u => !IsUnitValid(u));
 
-        // Если есть обязательная атака и мы не в серии прыжков - проверяем выбор
+       
         if (_selectedUnit == null)
         {
             if (cell.Unit != null && cell.Unit.Team == _currentTeam)
@@ -152,7 +153,7 @@ public class BattleController : MonoBehaviour
             }
             else if (cell.Unit != null && cell.Unit.Team == _currentTeam)
             {
-                // Разрешаем перевыбор только если нет обязательной атаки ИЛИ эта шашка может атаковать
+               
                 if (!_mustAttack || _unitsWithJumps.Contains(cell.Unit))
                 {
                     ResetAllSelection();
@@ -167,9 +168,9 @@ public class BattleController : MonoBehaviour
             }
             else
             {
-                // Отмена выбора
+                
                 ResetAllSelection();
-                // После отмены снова показываем возможные атаки
+               
                 if (_mustAttack)
                     PrepareTurn();
             }
@@ -350,7 +351,7 @@ public class BattleController : MonoBehaviour
         else
             wasJump = CanJumpOver(unit, targetCell, out enemyCell);
 
-        // Убираем вражескую шашку при прыжке
+        
         if (wasJump && enemyCell != null)
         {
             Debug.Log($"Уничтожена шашка противника на {enemyCell.transform.position}");
@@ -362,13 +363,13 @@ public class BattleController : MonoBehaviour
             enemyCell.Unit = null;
         }
 
-        // Перемещение
+      
         unit.Cell.Unit = null;
         targetCell.Unit = unit;
         unit.Cell = targetCell;
         unit.transform.position = targetCell.transform.position + Vector3.up * 1f;
 
-        // Проверка на превращение в дамку
+      
         if (!unit.IsKing && IsOnOppositeEdge(unit))
         {
             unit.IsKing = true;
@@ -376,7 +377,7 @@ public class BattleController : MonoBehaviour
             Debug.Log($"Шашка превратилась в дамку! {unit.Team} at {targetCell.transform.position}");
         }
 
-        // === ЛОГИКА СЕРИИ ПРЫЖКОВ ===
+      
         if (wasJump)
         {
             List<Cell> nextJumps = unit.IsKing ? GetKingJumpMoves(unit) : GetJumpMoves(unit);
@@ -385,18 +386,18 @@ public class BattleController : MonoBehaviour
 
             if (nextJumps.Count > 0)
             {
-                // Продолжаем серию прыжков
+               
                 _selectedUnit = unit;
                 HighlightSelectedUnit(unit);
                 ClearHighlights();
 
-                // Подсвечиваем только следующие прыжки
+                
                 foreach (var cell in nextJumps)
                     cell.SetSelect(_palette.AttackCell);
 
                 Debug.Log($"Продолжение серии прыжков: {nextJumps.Count} возможных ходов");
 
-                // ОБНОВЛЯЕМ список шашек с прыжками - теперь только эта шашка может ходить
+                
                 _unitsWithJumps.Clear();
                 _unitsWithJumps.Add(unit);
                 _mustAttack = true;
@@ -416,22 +417,25 @@ public class BattleController : MonoBehaviour
     private void SwitchTurn()
     {
         Debug.Log($"=== SwitchTurn: {_currentTeam} -> {(_currentTeam == Team.Player1 ? Team.Player2 : Team.Player1)} ===");
+        Team oldTeam = _currentTeam;
         ResetAllSelection();
         var allUnits = FindObjectsByType<Unit>(FindObjectsSortMode.None);
         foreach (var unit in allUnits)
         {
             if (unit == null || !unit.gameObject.activeInHierarchy || unit.Cell == null)
             {
-                // Нашли "мертвую" шашку - уничтожаем
+                // Нашли "мертвую" шашку - уничтожаем, долой зомби
                 if (unit != null && unit.gameObject != null)
                     Destroy(unit.gameObject);
             }
         }
 
         _currentTeam = _currentTeam == Team.Player1 ? Team.Player2 : Team.Player1;
+        OnTurnChanged?.Invoke(_currentTeam);
+
         Debug.Log($"=== СМЕНА ХОДА: теперь ходит {_currentTeam} ===");
 
-        // ВАЖНО: Сбрасываем состояние перед подготовкой нового хода
+       
         Debug.Log("Сбрасываем состояние: _selectedUnit, _mustAttack, _unitsWithJumps");
         _selectedUnit = null;
         _mustAttack = false;
@@ -443,16 +447,14 @@ public class BattleController : MonoBehaviour
 
     private void ResetAllSelection()
     {
-        // Сбрасываем выбранную шашку
+        
         if (_selectedUnit != null)
         {
             UnhighlightSelectedUnit(_selectedUnit);
             _selectedUnit = null;
         }
 
-        // Сбрасываем подсветку шашек с атакующими ходами
 
-        // ОЧИЩАЕМ список от уничтоженных юнитов ПЕРЕД использованием
         _unitsWithJumps.RemoveAll(unit => unit == null);
 
         foreach (var unit in _unitsWithJumps)
@@ -471,7 +473,6 @@ public class BattleController : MonoBehaviour
 
         enemyCell = null;
 
-        // Целевая клетка должна быть пустой - ЭТО ОЧЕНЬ ВАЖНО!
         if (targetCell.Unit != null)
         {
             Debug.Log($"Целевая клетка занята - прыжок невозможен");
@@ -481,56 +482,33 @@ public class BattleController : MonoBehaviour
         Vector3 from = unit.Cell.transform.position;
         Vector3 to = targetCell.transform.position;
 
-        // Получаем координаты доски для проверки направления
         Vector2Int fromCoords = _cellManager.WorldToBoardCoords(from);
         Vector2Int toCoords = _cellManager.WorldToBoardCoords(to);
 
-        // Вектор прыжка
         Vector3 jumpDir = to - from;
 
-        // Прыжок должен быть на 2 клетки по диагонали
         if (Mathf.Abs(jumpDir.magnitude - Mathf.Sqrt(32)) > 0.1f)
         {
             Debug.Log($"Неправильное расстояние для прыжка: {jumpDir.magnitude}");
             return false;
         }
 
-        // Направление на одну клетку
         Vector3 stepDir = new Vector3(
             Mathf.Sign(jumpDir.x) * 2f,
             0,
             Mathf.Sign(jumpDir.z) * 2f
         );
 
-        // Позиция вражеской клетки (между from и to)
         Vector3 enemyPos = from + stepDir;
 
-        // Находим вражескую клетку
         var allCells = FindObjectsByType<Cell>(FindObjectsSortMode.None);
         foreach (var cell in allCells)
         {
             if (Vector3.Distance(cell.transform.position, enemyPos) < 0.1f)
             {
-                // Это должна быть вражеская шашка
                 if (cell.Unit != null && cell.Unit.Team != unit.Team)
                 {
                     enemyCell = cell;
-
-                    //// ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: для обычных шашек проверяем направление
-                    //if (!unit.IsKing)
-                    //{
-                    //    if (unit.Team == Team.Player1 && toCoords.x <= fromCoords.x)
-                    //    {
-                    //        Debug.Log("Player1 может прыгать только вперед (вправо)");
-                    //        return false;
-                    //    }
-                    //    else if (unit.Team == Team.Player2 && toCoords.x >= fromCoords.x)
-                    //    {
-                    //        Debug.Log("Player2 может прыгать только вперед (влево)");
-                    //        return false;
-                    //    }
-                    //}
-
                     Debug.Log($"Найден враг! Прыжок возможен с ({fromCoords.x},{fromCoords.y}) на ({toCoords.x},{toCoords.y})");
                     return true;
                 }
@@ -788,7 +766,7 @@ public class BattleController : MonoBehaviour
     private void HighlightAttackUnit(Unit unit)
     {
         Vector3 currentPos = unit.transform.position;
-        unit.transform.position = new Vector3(currentPos.x, currentPos.y + 0.3f, currentPos.z); // Меньше, чем для selected (0.5f), чтобы отличать
+        unit.transform.position = new Vector3(currentPos.x, currentPos.y + 0.3f, currentPos.z); 
     }
 
     private void UnhighlightAttackUnit(Unit unit)
@@ -800,9 +778,6 @@ public class BattleController : MonoBehaviour
 
     private void PrepareTurn()
     {
-        //var allUnits = FindObjectsByType<Unit>(FindObjectsSortMode.None);
-
-        
         _unitsWithJumps.Clear();
         _mustAttack = false;
 
@@ -816,10 +791,10 @@ public class BattleController : MonoBehaviour
         Debug.Log($"Всего шашек на поле: {allUnits.Length}");
 
         ClearHighlights();
-        // Сначала сбрасываем подсветку всех шашек и клеток
+     
         foreach (var unit in allUnits)
         {
-            // ДОБАВИТЬ ПРОВЕРКУ: unit должен быть активен и не уничтожен
+       
             if (unit == null || !unit.gameObject.activeInHierarchy || unit.Cell == null)
                 continue;
 
@@ -828,13 +803,11 @@ public class BattleController : MonoBehaviour
                 UnhighlightAttackUnit(unit);
             }
         }
-        ClearHighlights(); // Очищаем подсветку клеток
+        ClearHighlights(); 
 
-        // Проверяем все шашки текущего игрока на наличие прыжков
         int currentTeamUnits = 0;
         foreach (var unit in allUnits)
         {
-            // УСИЛИТЬ ПРОВЕРКУ: unit должен быть активен, не уничтожен, и иметь клетку
             if (unit == null || !unit.gameObject.activeInHierarchy || unit.Cell == null || unit.Team != _currentTeam || unit.gameObject == null)
                 continue;
 
@@ -870,7 +843,6 @@ public class BattleController : MonoBehaviour
         Debug.Log($"Всего шашек {_currentTeam}: {currentTeamUnits}");
         Debug.Log($"Итог: {_unitsWithJumps.Count} шашек могут атаковать, обязательная атака: {_mustAttack}");
 
-        // Выведем список всех шашек которые могут атаковать
         foreach (var unit in _unitsWithJumps)
         {
             if (unit != null && unit.Cell != null)
@@ -906,7 +878,6 @@ public class BattleController : MonoBehaviour
 
         Debug.Log($" УНИЧТОЖАЕМ ШАШКУ: {unit.Team} at {unit.Cell?.transform.position}");
 
-        // 1. Удаляем из всех списков
         if (_unitsWithJumps.Contains(unit))
         {
             _unitsWithJumps.Remove(unit);
@@ -919,20 +890,17 @@ public class BattleController : MonoBehaviour
             Debug.Log($"   Сброшен _selectedUnit");
         }
 
-        // 2. ОЧИЩАЕМ ССЫЛКУ НА КЛЕТКЕ (ВАЖНО!)
         if (unit.Cell != null && unit.Cell.Unit == unit)
         {
             unit.Cell.Unit = null;
             Debug.Log($"   Очищена ссылка на клетке {unit.Cell.transform.position}");
         }
 
-        // 3. Деактивируем перед уничтожением
         if (unit.gameObject != null)
         {
             unit.gameObject.SetActive(false);
             Debug.Log($"   Деактивирован gameObject");
 
-            // 4. Уничтожаем
             Destroy(unit.gameObject);
             Debug.Log($"   Уничтожен gameObject");
         }
@@ -951,10 +919,8 @@ public class BattleController : MonoBehaviour
         {
             if (unit == null) continue;
 
-            // Более безопасная проверка без вызова DestroyUnit (чтобы избежать рекурсии)
             if (unit.gameObject == null || !unit.gameObject.activeInHierarchy)
             {
-                // Просто уничтожаем без вызова полного метода
                 Destroy(unit.gameObject);
                 destroyedCount++;
             }

@@ -17,7 +17,7 @@ public class SceneInstaller : MonoInstaller
         Container.BindInstance(_cellManager).AsSingle();
         Container.BindInstance(_cellPaletteSettings).AsSingle();
         Container.BindInstance(gameInput).AsSingle();
-        Container.BindInstance(gameInput.Game).AsSingle(); //вопросики
+        Container.BindInstance(gameInput.Game).AsSingle(); 
         Container.Bind<BattleController>().FromComponentInHierarchy().AsSingle();
         Container.Bind<InputManager>().FromComponentInHierarchy().AsSingle();
     }
