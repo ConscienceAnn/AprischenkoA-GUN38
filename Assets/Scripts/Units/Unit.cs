@@ -11,7 +11,7 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
     public Cell Cell { get; set; }
 
     public event System.Action OnMoveEndCallback;
-
+    public event System.Action<Unit> OnMoveComplete; //
     public void OnPointerEnter(PointerEventData eventData)
     {
         Cell?.OnPointerEnter(eventData);
@@ -61,5 +61,6 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler, I
         transform.position = targetPosition;
 
         OnMoveEndCallback?.Invoke();
+        OnMoveComplete?.Invoke(this); //
     }
 }

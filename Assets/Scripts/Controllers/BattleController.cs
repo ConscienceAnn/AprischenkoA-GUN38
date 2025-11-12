@@ -15,6 +15,8 @@ public class BattleController : MonoBehaviour
 
     [SerializeField] private Material KingMaterial;
 
+    [SerializeField] private PlayerController playerController;
+
     private Team _currentTeam = Team.Player1; // Player1 ходит первым
     private Unit _selectedUnit = null;
     private GameInput.GameActions _gameActions;
@@ -86,6 +88,12 @@ public class BattleController : MonoBehaviour
 
     public void HandleCellClick(Cell cell)
     {
+        if (playerController.IsInputBlocked())
+        {
+            Debug.Log("¬вод заблокирован - идет анимаци€!");
+            return;
+        }
+
         Debug.Log($"=== HandleCellClick ===");
         Debug.Log($"Click on cell at {cell.transform.position}");
 
@@ -351,7 +359,7 @@ public class BattleController : MonoBehaviour
         else
             wasJump = CanJumpOver(unit, targetCell, out enemyCell);
 
-        
+
         if (wasJump && enemyCell != null)
         {
             Debug.Log($"”ничтожена шашка противника на {enemyCell.transform.position}");
@@ -363,18 +371,23 @@ public class BattleController : MonoBehaviour
             enemyCell.Unit = null;
         }
 
-      
+
         unit.Cell.Unit = null;
         targetCell.Unit = unit;
         unit.Cell = targetCell;
-        unit.transform.position = targetCell.transform.position + Vector3.up * 1f;
+        playerController.MakeMove(unit, targetCell, wasJump);
 
-      
+        //unit.transform.position = targetCell.transform.position + Vector3.up * 1f;
+    }
+
+
+    public void OnMoveAnimationComplete(Unit unit, bool wasJump)
+    {
         if (!unit.IsKing && IsOnOppositeEdge(unit))
         {
             unit.IsKing = true;
             HighlightAsKing(unit);
-            Debug.Log($"Ўашка превратилась в дамку! {unit.Team} at {targetCell.transform.position}");
+            Debug.Log($"Ўашка превратилась в дамку! {unit.Team}");
         }
 
       
