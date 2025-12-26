@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ShipController : MonoBehaviour
+public class Player : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;

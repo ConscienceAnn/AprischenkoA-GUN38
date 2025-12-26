@@ -132,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 249666230}
   - component: {fileID: 249666229}
+  - component: {fileID: 249666231}
   m_Layer: 0
   m_Name: AngryTowerRight
   m_TagString: Untagged
@@ -206,6 +207,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &249666231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 249666228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c6c3312e53bd54b9cac937190a9ba1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _radius: 3
+  _angle: 286
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 128
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _player: {fileID: 1504216852}
+  checkDelay: 0.2
+  radiusColor: {r: 1, g: 1, b: 1, a: 1}
+  angleColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  detectedColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  sectorColor: {r: 1, g: 1, b: 0, a: 0.3}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,7 +338,7 @@ GameObject:
   - component: {fileID: 1097010202}
   - component: {fileID: 1097010205}
   - component: {fileID: 1097010204}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Obstacle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2835,6 +2863,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1576486432}
   - component: {fileID: 1576486431}
+  - component: {fileID: 1576486433}
   m_Layer: 0
   m_Name: AngryTowerMiddle
   m_TagString: Untagged
@@ -2909,6 +2938,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1576486433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1576486430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c6c3312e53bd54b9cac937190a9ba1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _radius: 2
+  _angle: 360
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 128
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _player: {fileID: 1504216852}
+  checkDelay: 0.27
+  radiusColor: {r: 1, g: 1, b: 1, a: 1}
+  angleColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  detectedColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  sectorColor: {r: 1, g: 1, b: 0, a: 0.3}
 --- !u!1 &1819351479
 GameObject:
   m_ObjectHideFlags: 0
@@ -2919,6 +2975,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1819351481}
   - component: {fileID: 1819351480}
+  - component: {fileID: 1819351482}
   m_Layer: 0
   m_Name: AngryTowerLeft
   m_TagString: Untagged
@@ -2993,6 +3050,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1819351482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819351479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c6c3312e53bd54b9cac937190a9ba1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _radius: 4
+  _angle: 298
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 128
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 256
+  _player: {fileID: 1504216852}
+  checkDelay: 0.2
+  radiusColor: {r: 1, g: 1, b: 1, a: 1}
+  angleColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  detectedColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 1, b: 0, a: 1}
+  sectorColor: {r: 1, g: 1, b: 0, a: 0.3}
 --- !u!1 &1823610058
 GameObject:
   m_ObjectHideFlags: 0
