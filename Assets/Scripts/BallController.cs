@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public float forceMultiplier = 300f; // Сила броска
+    public float forceMultiplier = 500f; // Сила броска
     private Rigidbody rb;
     private Vector3 startPoint; // Точка начала drag
     private Vector3 endPoint;   // Точка конца drag
