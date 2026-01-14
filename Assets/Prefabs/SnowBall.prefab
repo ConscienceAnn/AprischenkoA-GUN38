@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 7510753231195519093}
   - component: {fileID: 8628006224447817491}
   - component: {fileID: 319684047653206810}
+  - component: {fileID: 4537429155567509196}
   m_Layer: 0
   m_Name: SnowBall
-  m_TagString: Untagged
+  m_TagString: Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -115,7 +116,7 @@ Rigidbody:
   m_GameObject: {fileID: 1642452489004650262}
   serializedVersion: 4
   m_Mass: 1
-  m_Drag: 0
+  m_Drag: 0.01
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -130,6 +131,19 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
+--- !u!114 &4537429155567509196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642452489004650262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f00d6c33251c0440af180b68aa26163, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  forceMultiplier: 300
