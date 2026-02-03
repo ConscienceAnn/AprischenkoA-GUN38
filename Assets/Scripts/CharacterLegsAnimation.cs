@@ -1,7 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-public class  CharacterLegsAnimation: MonoBehaviour
+public class CharacterLegsAnimation : MonoBehaviour
 {
     public Transform legLeft;
     public Transform legRight;
@@ -19,10 +19,12 @@ public class  CharacterLegsAnimation: MonoBehaviour
         leftHome = legLeft.localPosition;
         rightHome = legRight.localPosition;
 
-        CreateWalkCycle();
+        // Автозапуск можно убрать, если будет управляться из CharacterMovement
+        // StartWalkingAnimation();
     }
 
-    void CreateWalkCycle()
+    // Публичный метод для запуска (совместимость с CharacterMovement)
+    public void StartWalkingAnimation()
     {
         DOTween.Kill(legLeft);
         DOTween.Kill(legRight);
@@ -30,8 +32,6 @@ public class  CharacterLegsAnimation: MonoBehaviour
         walkCycle = DOTween.Sequence();
 
         // --- ПРАВАЯ НОГА ШАГАЕТ ---
-        // 1. Правая поднимается и идёт вперёд
-        walkCycle.AppendCallback(() => Debug.Log("Правая нога шагает"));
         walkCycle.Append(
             legRight.DOLocalMove(new Vector3(
                 rightHome.x,
@@ -41,24 +41,19 @@ public class  CharacterLegsAnimation: MonoBehaviour
             .SetEase(Ease.OutSine)
         );
 
-        // 2. Левая немного отодвигается назад (имитация опоры)
         walkCycle.Join(
             legLeft.DOLocalMoveZ(leftHome.z - (stepDistance * 0.2f), stepTime)
                 .SetEase(Ease.OutSine)
         );
 
-        // 3. Правая опускается
         walkCycle.Append(
             legRight.DOLocalMoveY(rightHome.y, stepTime * 0.3f)
                 .SetEase(Ease.InSine)
         );
 
-        // --- ПАУЗА МЕЖДУ ШАГАМИ ---
         walkCycle.AppendInterval(stepTime * 0.1f);
 
         // --- ЛЕВАЯ НОГА ШАГАЕТ ---
-        // 4. Левая поднимается и идёт вперёд
-        walkCycle.AppendCallback(() => Debug.Log("Левая нога шагает"));
         walkCycle.Append(
             legLeft.DOLocalMove(new Vector3(
                 leftHome.x,
@@ -68,13 +63,11 @@ public class  CharacterLegsAnimation: MonoBehaviour
             .SetEase(Ease.OutSine)
         );
 
-        // 5. Правая немного отодвигается назад
         walkCycle.Join(
             legRight.DOLocalMoveZ(rightHome.z - (stepDistance * 0.2f), stepTime)
                 .SetEase(Ease.OutSine)
         );
 
-        // 6. Левая опускается
         walkCycle.Append(
             legLeft.DOLocalMoveY(leftHome.y, stepTime * 0.3f)
                 .SetEase(Ease.InSine)
@@ -91,9 +84,11 @@ public class  CharacterLegsAnimation: MonoBehaviour
                 .SetEase(Ease.InOutSine)
         );
 
-        // Зацикливаем
         walkCycle.SetLoops(-1, LoopType.Restart);
     }
+
+    // Два метода для совместимости
+    public void StopWalking() => StopWalk();
 
     public void StopWalk()
     {
