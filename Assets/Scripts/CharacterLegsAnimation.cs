@@ -19,11 +19,7 @@ public class CharacterLegsAnimation : MonoBehaviour
         leftHome = legLeft.localPosition;
         rightHome = legRight.localPosition;
 
-        // Автозапуск можно убрать, если будет управляться из CharacterMovement
-        // StartWalkingAnimation();
     }
-
-    // Публичный метод для запуска (совместимость с CharacterMovement)
     public void StartWalkingAnimation()
     {
         DOTween.Kill(legLeft);

@@ -10,7 +10,7 @@ public class EnemyAnimation : MonoBehaviour
     public Renderer headRenderer;
 
     [Header("Ёффект при касании")]
-    public Color attackColor = new Color(1, 0.5f, 0.5f); // —ветло-красный
+    public Color attackColor = new Color(1, 0.5f, 0.5f); 
 
     [Header("јнимаци€")]
     public float headScaleAmount = 1.5f;
@@ -29,7 +29,6 @@ public class EnemyAnimation : MonoBehaviour
         // —охран€ем исходные значени€
         SaveOriginalValues();
 
-        // —оздаем MaterialPropertyBlock дл€ безопасного изменени€ цвета
         if (headRenderer != null)
         {
             propertyBlock = new MaterialPropertyBlock();

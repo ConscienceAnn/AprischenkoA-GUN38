@@ -14,9 +14,8 @@ public class CharacterMovement : MonoBehaviour
     // Текущее движение
     private Tween movementTween;
 
-    /// <summary>
-    /// Начинает движение персонажа по дорожке (ОДИН метод!)
-    /// </summary>
+    /// Начинает движение персонажа по дорожке 
+
     public void MoveAlongPath(Transform startPoint, Transform endPoint)
     {
         // 1. Ставим персонажа в начало дорожки
@@ -54,9 +53,9 @@ public class CharacterMovement : MonoBehaviour
             });
     }
 
-    /// <summary>
+
     /// Плавный поворот во время движения
-    /// </summary>
+
     void SmoothRotation(Vector3 targetPosition)
     {
         Vector3 direction = (targetPosition - transform.position).normalized;
@@ -71,9 +70,8 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    /// <summary>
     /// Останавливает движение персонажа
-    /// </summary>
+
     public void StopMovement()
     {
         if (movementTween != null && movementTween.IsActive())

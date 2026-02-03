@@ -14,9 +14,9 @@ public class PlayerEffects : MonoBehaviour
 
     [Header("Настройки анимации")]
     public float flashSpeed = 0.1f;
-    public int trapFlashCount = 1;    // Ловушки: 2 мигания
-    public int enemyFlashCount = 1;   // Враг: 3 мигания  
-    public int coinFlashCount = 1;    // Монетка: 3 мигания
+    public int trapFlashCount = 1;    // Ловушки мигания
+    public int enemyFlashCount = 1;   // Враг мигания  
+    public int coinFlashCount = 1;    // Монетка мигания
 
     private Color bodyOriginalColor;
     private Color headOriginalColor;
@@ -59,7 +59,7 @@ public class PlayerEffects : MonoBehaviour
         );
     }
 
-    // Общий метод мигания с DOTween (как у монетки в старом коде)
+    // Общий метод мигания с DOTween
     void FlashEffect(Color flashColor, int flashCount)
     {
         // Останавливаем предыдущие анимации

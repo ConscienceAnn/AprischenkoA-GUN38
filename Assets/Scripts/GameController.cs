@@ -39,9 +39,9 @@ public class GameController : MonoBehaviour
         HideAllUI();
     }
 
-    /// <summary>
+
     /// Начинает новый раунд (выбор дорожки)
-    /// </summary>
+
     public void StartNewRound()
     {
         Debug.Log("=== НАЧИНАЕМ НОВЫЙ РАУНД ===");
@@ -86,9 +86,8 @@ public class GameController : MonoBehaviour
         HideChoiceUI();
     }
 
-    /// <summary>
     /// Вызывается когда персонаж дошёл до конца дорожки
-    /// </summary>
+
     public void OnPathCompleted()
     {
         Debug.Log("Путь завершён!");

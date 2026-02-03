@@ -72,7 +72,7 @@ public class Coin : MonoBehaviour
         if (playerEffects != null)
         {
             playerEffects.CollectCoin();
-            // или используйте: playerEffects.FlashCoinEffect();
+           
         }
         else
         {
