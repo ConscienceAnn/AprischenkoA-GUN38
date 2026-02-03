@@ -3,87 +3,117 @@ using UnityEngine;
 
 public class SpikeTrap : MonoBehaviour
 {
-    [Header("Основные настройки")]
-    public float riseHeight = 0.150f;      // Высота подъёма
-    public float riseTime = 0.5f;      // Время подъёма
-    public float stayTime = 1f;        // Время в поднятом состоянии
-    public float lowerTime = 0.5f;     // Время опускания
-    public float waitTime = 2f;        // Ожидание перед повторением
+    [Header("Анимация")]
+    public float riseHeight = 0.15f;
+    public float riseTime = 0.5f;
+    public float stayTime = 0.5f;
+    public float lowerTime = 0.5f;
+    public float waitTime = 1f;
 
-    [Header("Easing функции")]
-    public Ease riseEase = Ease.OutBack;    // Эффект "пружины" при подъёме
-    public Ease lowerEase = Ease.InBack;    // Эффект "вдавливания" при опускании
+    [Header("Ссылки")]
+    public Renderer trapMesh;
+
+    [Header("Эффект")]
+    public Color bloodColor = Color.red;
 
     private Vector3 originalPosition;
     private Vector3 raisedPosition;
+    private MaterialPropertyBlock propertyBlock;
+    private Color originalColor;
+    private bool hasBlood = false; // Флаг "крови" на ловушке
 
     void Start()
     {
-        // Сохраняем исходную позицию
         originalPosition = transform.localPosition;
-
-        // Рассчитываем позицию поднятых шипов
         raisedPosition = originalPosition + Vector3.up * riseHeight;
 
-        // Запускаем анимацию
+        if (trapMesh == null)
+        {
+            trapMesh = GetComponent<Renderer>();
+            if (trapMesh == null)
+            {
+                trapMesh = GetComponentInChildren<Renderer>();
+            }
+        }
+
+        if (trapMesh != null)
+        {
+            propertyBlock = new MaterialPropertyBlock();
+            trapMesh.GetPropertyBlock(propertyBlock);
+
+            if (propertyBlock.isEmpty)
+            {
+                originalColor = trapMesh.material.color;
+            }
+            else if (propertyBlock.HasProperty("_Color"))
+            {
+                originalColor = propertyBlock.GetColor("_Color");
+            }
+
+            Debug.Log($"Ловушка '{gameObject.name}' инициализирована");
+        }
+
         StartAnimation();
     }
 
     void StartAnimation()
     {
-        // Создаём последовательность анимаций
         Sequence spikeSequence = DOTween.Sequence();
 
-        // 1. ПОДЪЁМ с эффектом "пружины"
+        // ПОДЪЕМ
         spikeSequence.Append(
             transform.DOLocalMove(raisedPosition, riseTime)
-                .SetEase(riseEase)
-                .OnStart(() => {
-                    Debug.Log("Шипы поднимаются!");
-                    // Включить коллайдер урона здесь
-                })
+                .SetEase(Ease.OutBack)
         );
 
-        // 2. ПАУЗА в поднятом состоянии
+        // ПАУЗА (опасное состояние)
         spikeSequence.AppendInterval(stayTime);
 
-        // 3. ОПУСКАНИЕ с эффектом
+        // ОПУСКАНИЕ
         spikeSequence.Append(
             transform.DOLocalMove(originalPosition, lowerTime)
-                .SetEase(lowerEase)
-                .OnComplete(() => {
-                    Debug.Log("Шипы опустились!");
-                    // Выключить коллайдер урона здесь
-                })
+                .SetEase(Ease.InBack)
         );
 
-        // 4. ОЖИДАНИЕ перед следующим циклом
+        // ОЖИДАНИЕ
         spikeSequence.AppendInterval(waitTime);
 
-        // 5. ЗАЦИКЛИВАЕМ
         spikeSequence.SetLoops(-1, LoopType.Restart);
-
-       
-        // SetLoops(-1) означает бесконечное повторение
-        // LoopType.Restart - каждый цикл начинается сначала
     }
 
-    // Для нанесения урона игроку
-    //void OnTriggerEnter(Collider other)
-    //{
-    //    if (other.CompareTag("Player"))
-    //    {
-    //        // Проверяем, активны ли шипы в данный момент
-    //        float currentHeight = transform.localPosition.y;
-    //        float activeThreshold = originalPosition.y + (riseHeight * 0.7f);
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            Debug.Log($"Игрок коснулся ловушки '{gameObject.name}'!");
 
-    //        if (currentHeight > activeThreshold)
-    //        {
-    //            Debug.Log("Игрок получил урон от шипов!");
-    //            // Нанести урон игроку
-    //            // other.GetComponent<PlayerHealth>().TakeDamage(10);
-    //        }
-    //    }
-    //}
+            // Эффект на игроке ВСЕГДА при касании!
+            PlayerEffects playerEffects = other.GetComponent<PlayerEffects>();
+            if (playerEffects != null)
+            {
+                playerEffects.TakeTrapDamage();
+            }
 
+            // Эффект на ловушке (если еще нет "крови")
+            if (!hasBlood && propertyBlock != null && trapMesh != null)
+            {
+                propertyBlock.SetColor("_Color", bloodColor);
+                trapMesh.SetPropertyBlock(propertyBlock);
+                hasBlood = true;
+
+                // Сбрасываем через 3 секунды
+                Invoke(nameof(ResetTrapColor), 3f);
+            }
+        }
+    }
+
+    void ResetTrapColor()
+    {
+        if (propertyBlock != null && trapMesh != null)
+        {
+            propertyBlock.SetColor("_Color", originalColor);
+            trapMesh.SetPropertyBlock(propertyBlock);
+            hasBlood = false;
+        }
+    }
 }

@@ -63,6 +63,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -7139261109480557378, guid: 01743914cadc674478670bc91884762f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7701525926189102531}
+    - targetCorrespondingSourceObject: {fileID: -7139261109480557378, guid: 01743914cadc674478670bc91884762f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 928658123566051561}
+    - targetCorrespondingSourceObject: {fileID: -7139261109480557378, guid: 01743914cadc674478670bc91884762f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3724256103357075377}
   m_SourcePrefab: {fileID: 100100000, guid: 01743914cadc674478670bc91884762f, type: 3}
 --- !u!1 &1052317918424294622 stripped
 GameObject:
@@ -86,5 +92,58 @@ MonoBehaviour:
   stayTime: 0.5
   lowerTime: 0.5
   waitTime: 1
-  riseEase: 27
-  lowerEase: 26
+  trapMesh: {fileID: 5705518668111291272}
+  bloodColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!65 &928658123566051561
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1052317918424294622}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.502807, y: 0.16999999, z: 0.502807}
+  m_Center: {x: 0, y: 0.17, z: 0}
+--- !u!54 &3724256103357075377
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1052317918424294622}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!23 &5705518668111291272 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -2497042905631214616, guid: 01743914cadc674478670bc91884762f, type: 3}
+  m_PrefabInstance: {fileID: 1330437978712117344}
+  m_PrefabAsset: {fileID: 0}

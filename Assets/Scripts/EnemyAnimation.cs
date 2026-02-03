@@ -1,80 +1,160 @@
 using DG.Tweening;
 using UnityEngine;
 
-public class SimpleEnemyAnim : MonoBehaviour
+public class EnemyAnimation : MonoBehaviour
 {
+    [Header("Ссылки на части врага")]
     public Transform head;
     public Transform leftArm;
     public Transform rightArm;
     public Renderer headRenderer;
 
+    [Header("Эффект при касании")]
+    public Color attackColor = new Color(1, 0.5f, 0.5f); // Светло-красный
+
+    [Header("Анимация")]
+    public float headScaleAmount = 1.5f;
+    public float headPulseDuration = 0.3f;
+    public float armMoveAmount = 0.1f;
+    public float armMoveDuration = 0.2f;
+
     private Vector3 headOriginalScale;
     private Color headOriginalColor;
     private Vector3 leftArmOriginalPos;
     private Vector3 rightArmOriginalPos;
+    private MaterialPropertyBlock propertyBlock;
 
     void Start()
     {
         // Сохраняем исходные значения
         SaveOriginalValues();
 
+        // Создаем MaterialPropertyBlock для безопасного изменения цвета
+        if (headRenderer != null)
+        {
+            propertyBlock = new MaterialPropertyBlock();
+            headRenderer.GetPropertyBlock(propertyBlock);
+            headOriginalColor = propertyBlock.HasProperty("_Color") ?
+                propertyBlock.GetColor("_Color") : headRenderer.material.color;
+        }
+
         // Запускаем анимации
         AnimateArms();
-
         AnimateHead();
+
+        Debug.Log($"Враг '{gameObject.name}' инициализирован (триггер)");
     }
 
     void SaveOriginalValues()
     {
-        headOriginalScale = head.localScale;
-        headOriginalColor = headRenderer.material.color;
-        leftArmOriginalPos = leftArm.localPosition;
-        rightArmOriginalPos = rightArm.localPosition;
+        if (head != null) headOriginalScale = head.localScale;
+        if (headRenderer != null) headOriginalColor = headRenderer.material.color;
+        if (leftArm != null) leftArmOriginalPos = leftArm.localPosition;
+        if (rightArm != null) rightArmOriginalPos = rightArm.localPosition;
     }
+
     void AnimateHead()
     {
-        // Очищаем предыдущие анимации головы
+        if (head == null || headRenderer == null) return;
+
         DOTween.Kill(head);
-        DOTween.Kill(headRenderer.material);
 
-        // СОЗДАЁМ ОДИН ЦИКЛ И ЗАЦИКЛИВАЕМ ЕГО
         Sequence headSeq = DOTween.Sequence();
-
-        // 1. Увеличиваем и краснеем (ОДИН РАЗ за цикл)
-        headSeq.Append(head.DOScale(headOriginalScale * 1.5f, 0.3f));
-        headSeq.Join(headRenderer.material.DOColor(Color.red, 0.3f));
-
-        // 2. Возвращаем к исходным значениям
-        headSeq.Append(head.DOScale(headOriginalScale, 0.3f));
-        headSeq.Join(headRenderer.material.DOColor(headOriginalColor, 0.3f));
-
-        // 3. Пауза перед повторением цикла
-        headSeq.AppendInterval(0.5f); // Можно настроить длительность паузы
-
-        // 4. ЗАЦИКЛИВАЕМ этот один цикл БЕСКОНЕЧНО
+        headSeq.Append(head.DOScale(headOriginalScale * headScaleAmount, headPulseDuration));
+        headSeq.Append(head.DOScale(headOriginalScale, headPulseDuration));
+        headSeq.AppendInterval(0.5f);
         headSeq.SetLoops(-1, LoopType.Restart);
-
-        // Комментарий для ТЗ:
-        // SetLoops(-1) - бесконечное повторение одного цикла
-        // LoopType.Restart - каждый цикл начинается с начала
     }
 
     void AnimateArms()
     {
-        // Очищаем предыдущие анимации
+        if (leftArm != null)
+        {
+            leftArm.DOLocalMoveY(leftArmOriginalPos.y + armMoveAmount, armMoveDuration)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetDelay(0.1f);
+        }
+
+        if (rightArm != null)
+        {
+            rightArm.DOLocalMoveY(rightArmOriginalPos.y + armMoveAmount, armMoveDuration)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetDelay(0.35f);
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            Debug.Log($"Враг '{gameObject.name}' коснулся игрока!");
+
+            // 1. Эффект у врага (мгновенное покраснение головы)
+            PlayAttackEffect();
+
+            // 2. Эффект у игрока
+            PlayerEffects playerEffects = other.GetComponent<PlayerEffects>();
+            if (playerEffects != null)
+            {
+                playerEffects.TakeEnemyDamage();
+            }
+            else
+            {
+                Debug.LogWarning("PlayerEffects не найден на игроке!");
+            }
+        }
+    }
+
+    void PlayAttackEffect()
+    {
+        if (headRenderer == null) return;
+
+        // Быстрое покраснение и возврат
+        if (propertyBlock != null)
+        {
+            // Красный
+            propertyBlock.SetColor("_Color", attackColor);
+            headRenderer.SetPropertyBlock(propertyBlock);
+
+            // Возвращаем через 0.3 секунды
+            Invoke(nameof(ResetHeadColor), 0.3f);
+        }
+        else
+        {
+            // Fallback: через DOTween
+            headRenderer.material.DOColor(attackColor, 0.1f)
+                .OnComplete(() => headRenderer.material.DOColor(headOriginalColor, 0.2f));
+        }
+    }
+
+    void ResetHeadColor()
+    {
+        if (headRenderer != null && propertyBlock != null)
+        {
+            propertyBlock.SetColor("_Color", headOriginalColor);
+            headRenderer.SetPropertyBlock(propertyBlock);
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Очистка при уничтожении
+        DOTween.Kill(head);
         DOTween.Kill(leftArm);
         DOTween.Kill(rightArm);
 
-        // ЛЕВАЯ РУКА: вверх-вниз относительно исходной позиции
-        leftArm.DOLocalMoveY(leftArmOriginalPos.y + 0.1f, 0.2f)
-            .SetEase(Ease.InOutSine)
-            .SetLoops(-1, LoopType.Yoyo) // Yoyo: верх  низ верх...
-            .SetDelay(0.1f);
+        if (headRenderer != null)
+        {
+            DOTween.Kill(headRenderer.material);
 
-        // ПРАВАЯ РУКА: тоже вверх-вниз относительно исходной позиции, но в противофазе
-        rightArm.DOLocalMoveY(rightArmOriginalPos.y + 0.1f, 0.2f)
-            .SetEase(Ease.InOutSine)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetDelay(0.35f); // Задержка для противофазы
+            // Восстанавливаем цвет
+            if (propertyBlock != null)
+            {
+                propertyBlock.SetColor("_Color", headOriginalColor);
+                headRenderer.SetPropertyBlock(propertyBlock);
+            }
+        }
     }
 }

@@ -390,6 +390,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 484417084}
   m_CullTransparentMesh: 1
+--- !u!137 &615463726 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8780691006778126227, guid: 6f7fcaae6b42c1943a44e65ede34a429, type: 3}
+  m_PrefabInstance: {fileID: 1306682109}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &650250108
 GameObject:
   m_ObjectHideFlags: 0
@@ -1041,7 +1046,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1040598387
@@ -1640,6 +1645,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f7fcaae6b42c1943a44e65ede34a429, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2147305069}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f7fcaae6b42c1943a44e65ede34a429, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2147305070}
   m_SourcePrefab: {fileID: 100100000, guid: 6f7fcaae6b42c1943a44e65ede34a429, type: 3}
 --- !u!1 &1329006207
 GameObject:
@@ -1705,6 +1713,11 @@ Transform:
   - {fileID: 1582824580}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!137 &1565547754 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 7472899212689147909, guid: 6f7fcaae6b42c1943a44e65ede34a429, type: 3}
+  m_PrefabInstance: {fileID: 1306682109}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1582824579
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2214,6 +2227,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2147305070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2147305063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7fba2b217f179d4d89b15b89f04d9ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bodyMesh: {fileID: 1565547754}
+  headMesh: {fileID: 615463726}
+  damageColor: {r: 1, g: 0, b: 0, a: 1}
+  damageColor1: {r: 0, g: 1, b: 0, a: 1}
+  coinColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  flashSpeed: 0.1
+  trapFlashCount: 2
+  enemyFlashCount: 3
+  coinFlashCount: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
