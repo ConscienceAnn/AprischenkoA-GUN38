@@ -10,9 +10,25 @@ public class UIHealthBar : MonoBehaviour
     public Image backgroundImage;
     public Vector3 offset;
 
+    private Camera mainCamera;
+
+    void Start()
+    {
+        // Кэшируем главную камеру
+        mainCamera = Camera.main;
+    }
+
     // Update is called once per frame
     void LateUpdate()
     {
+        if (target == null || mainCamera == null)
+        {
+            // Если камера уничтожена, пытаемся найти новую
+            if (mainCamera == null)
+                mainCamera = Camera.main;
+            return;
+        }
+
         Vector3 direction = (target.position - Camera.main.transform.position).normalized;
         bool isBehind = Vector3.Dot(direction, Camera.main.transform.forward) <= 0.0f;
         foregroundImage.enabled = !isBehind;

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,11 +14,19 @@ public class GameManager : MonoBehaviour
     public GameObject mainCameraPrefab; // Префаб Main Camera
     public GameObject cameraRigPrefab;       // Префаб ----- Cameras ------
 
-    // Данные игрока для сохранения между сценами
+    [Header("UI Settings")]
+    public GameObject uiCanvasPrefab;
+    public GameObject eventSystemPrefab;
+
+    public AmmoWidget AmmoWidget { get; private set; }
+    public UIHealthBar PlayerHealthBar { get; private set; }
+
     private PlayerData savedPlayerData;
     private GameObject currentPlayer;
     private GameObject currentMainCamera;
     private GameObject currentCameraRig;
+    private GameObject currentUICanvas;
+    private GameObject currentEventSystem;
 
     void Awake()
     {
@@ -28,8 +37,9 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
 
-
+            CreateEventSystem();
             CreateCameras();
+            CreateUI();
         }
         else
         {
@@ -37,7 +47,82 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void CreateEventSystem()
+    {
+        // Проверяем, не существует ли уже EventSystem в сцене
+        if (currentEventSystem == null)
+        {
+            EventSystem existingEventSystem = FindObjectOfType<EventSystem>();
+            if (existingEventSystem != null)
+            {
+                // Если нашли существующий, используем его
+                currentEventSystem = existingEventSystem.gameObject;
+                DontDestroyOnLoad(currentEventSystem);
+                Debug.Log("Existing EventSystem found and persisted");
+            }
+            else if (eventSystemPrefab != null)
+            {
+                // Создаем новый из префаба
+                currentEventSystem = Instantiate(eventSystemPrefab, Vector3.zero, Quaternion.identity);
+                currentEventSystem.name = "EventSystem";
+                DontDestroyOnLoad(currentEventSystem);
+                Debug.Log("EventSystem created from prefab");
+            }
+            else
+            {
+                // Создаем базовый EventSystem если нет префаба
+                currentEventSystem = new GameObject("EventSystem");
+                currentEventSystem.AddComponent<EventSystem>();
+                currentEventSystem.AddComponent<StandaloneInputModule>();
+                DontDestroyOnLoad(currentEventSystem);
+                Debug.LogWarning("EventSystem prefab not assigned, created default EventSystem");
+            }
+        }
+    }
 
+    void CreateUI()
+    {
+        if (currentUICanvas == null && uiCanvasPrefab != null)
+        {
+            currentUICanvas = Instantiate(uiCanvasPrefab, Vector3.zero, Quaternion.identity);
+            DontDestroyOnLoad(currentUICanvas);
+
+            // Кэшируем ссылки на компоненты UI
+            AmmoWidget = currentUICanvas.GetComponentInChildren<AmmoWidget>();
+
+            Debug.Log("UI Canvas created and persisted");
+        }
+        else if (uiCanvasPrefab == null)
+        {
+            Debug.LogError("UI Canvas Prefab not assigned in GameManager!");
+        }
+    }
+
+    public void UpdateAmmoDisplay(int ammoCount, int clipCount)
+    {
+        if (AmmoWidget != null)
+        {
+            AmmoWidget.Refresh(ammoCount, clipCount);
+        }
+    }
+
+    // Создаем HealthBar для игрока (не в DontDestroyOnLoad, а как child игрока)
+    void SetupPlayerHealthBar(GameObject player)
+    {
+        // HealthBar должен быть child-ом игрока, чтобы следовать за ним
+        UIHealthBar healthBar = player.GetComponentInChildren<UIHealthBar>();
+        if (healthBar == null)
+        {
+            // Если в префабе игрока нет HealthBar, создаем его
+            GameObject healthBarPrefab = Resources.Load<GameObject>("UI/HealthBar");
+            if (healthBarPrefab != null)
+            {
+                GameObject healthBarObj = Instantiate(healthBarPrefab, player.transform);
+                healthBar = healthBarObj.GetComponent<UIHealthBar>();
+                healthBar.target = player.transform; // Настраиваем target
+            }
+        }
+    }
     void CreateCameras()
     {
         // Создаем Main Camera
@@ -76,7 +161,7 @@ public class GameManager : MonoBehaviour
         }
 
         //СНАЧАЛА пересоздаем камеры
-        RecreateCameras();
+      //  RecreateCameras();
 
         // СОЗДАЕМ нового игрока
         SpawnPlayerAtSpawnPoint();
@@ -128,6 +213,8 @@ public class GameManager : MonoBehaviour
                                    spawnPoint.transform.rotation);
         currentPlayer.tag = "Player";
         DontDestroyOnLoad(currentPlayer);
+        SetupPlayerHealthBar(currentPlayer);
+
         Debug.Log($"New player created at {spawnPoint.transform.position}");
 
 

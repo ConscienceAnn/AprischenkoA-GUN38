@@ -157,10 +157,17 @@ public class ActiveWeapon : MonoBehaviour
 
         SetActiveWeapon(newWeapon.weaponSlot);
 
-        if (ammoWidget)
+        //if (ammoWidget)
+        //{
+        //    ammoWidget.Refresh(weapon.ammoCount, weapon.clipCount);
+        //}
+
+        // Обновляем UI через GameManager
+        if (GameManager.Instance != null)
         {
-            ammoWidget.Refresh(weapon.ammoCount, weapon.clipCount);
+            GameManager.Instance.UpdateAmmoDisplay(weapon.ammoCount, weapon.clipCount);
         }
+
     }
 
     void ToggleActiveWeapon()
@@ -248,10 +255,15 @@ public class ActiveWeapon : MonoBehaviour
         if (weapon)
         {
             weapon.clipCount += clipCount;
-            if (ammoWidget)
+            //if (ammoWidget)
+            //{
+            //    ammoWidget.Refresh(weapon.ammoCount, weapon.clipCount);
+            //}
+            if (GameManager.Instance != null)
             {
-                ammoWidget.Refresh(weapon.ammoCount, weapon.clipCount);
+                GameManager.Instance.UpdateAmmoDisplay(weapon.ammoCount, weapon.clipCount);
             }
+
         }
     }
 }

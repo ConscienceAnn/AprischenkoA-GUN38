@@ -89,8 +89,14 @@ public class ReloadWeapon : MonoBehaviour
             Destroy(magazineHand);
             weapon.RefillAmmo();
             animator.ResetTrigger("reload_weapon");
-            if (ammoWidget) {
-                ammoWidget.Refresh(weapon.ammoCount, weapon.clipCount);
+
+            //if (ammoWidget) {
+            //    ammoWidget.Refresh(weapon.ammoCount, weapon.clipCount);
+            //}
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.UpdateAmmoDisplay(weapon.ammoCount, weapon.clipCount);
             }
             isReloading = false;
         }
