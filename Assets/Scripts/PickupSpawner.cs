@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class SimplePickupSpawner : MonoBehaviour
+public class PickupSpawner : MonoBehaviour
 {
     [System.Serializable]
     public class PickupConfig
@@ -18,7 +18,7 @@ public class SimplePickupSpawner : MonoBehaviour
     {
         public string name;
         public GameObject prefab;
-        public int maxCount = 2; // Максимум каждого вида оружия
+        public int maxCount = 2;
         public int currentCount = 0;
     }
 
@@ -26,7 +26,7 @@ public class SimplePickupSpawner : MonoBehaviour
     public PickupConfig healthPickup = new PickupConfig { name = "Аптечка", maxCount = 3 };
     public PickupConfig ammoPickup = new PickupConfig { name = "Патроны", maxCount = 3 };
 
-    [Header("Оружие (можно добавить несколько)")]
+    [Header("Оружие")]
     public WeaponConfig[] weapons = new WeaponConfig[]
     {
         new WeaponConfig { name = "Пистолет", maxCount = 2 },
@@ -48,11 +48,18 @@ public class SimplePickupSpawner : MonoBehaviour
 
     private List<GameObject> spawnedItems = new List<GameObject>();
 
+    [Header("Миникарта")]
+    public StaticMinimap minimap;
+
     void Start()
     {
-        // Находим WorldBounds
         if (worldBounds == null)
             worldBounds = FindObjectOfType<WorldBounds>();
+
+        // Автоматически добавляем слой Building
+        int buildingLayer = LayerMask.NameToLayer("Building");
+        if (buildingLayer != -1)
+            obstacleLayers |= (1 << buildingLayer);
 
         // Загружаем префабы
         if (healthPickup.prefab == null)
@@ -60,16 +67,13 @@ public class SimplePickupSpawner : MonoBehaviour
         if (ammoPickup.prefab == null)
             ammoPickup.prefab = Resources.Load<GameObject>("Pickups/AmmoPickup");
 
-        // Загружаем префабы оружия
         for (int i = 0; i < weapons.Length; i++)
         {
             if (weapons[i].prefab == null)
             {
-                // Пытаемся загрузить по имени
                 string path = "Pickups/Weapon_" + weapons[i].name;
                 weapons[i].prefab = Resources.Load<GameObject>(path);
 
-                // Если не нашли, пробуем без префикса
                 if (weapons[i].prefab == null)
                     weapons[i].prefab = Resources.Load<GameObject>("Pickups/" + weapons[i].name);
             }
@@ -82,15 +86,12 @@ public class SimplePickupSpawner : MonoBehaviour
     {
         while (true)
         {
-            // Спавним аптечки
             if (healthPickup.currentCount < healthPickup.maxCount)
                 TrySpawnPickup(healthPickup);
 
-            // Спавним патроны
             if (ammoPickup.currentCount < ammoPickup.maxCount)
                 TrySpawnPickup(ammoPickup);
 
-            // Спавним оружие (каждый вид по отдельности)
             foreach (var weapon in weapons)
             {
                 if (weapon.currentCount < weapon.maxCount)
@@ -116,10 +117,19 @@ public class SimplePickupSpawner : MonoBehaviour
                 tracker.pickupConfig = config;
                 tracker.weaponConfig = null;
 
+                if (minimap != null)
+                {
+                    StaticMinimap.PickupType type;
+                    if (config.name.Contains("Аптечка") || config.prefab.name.Contains("Health"))
+                        type = StaticMinimap.PickupType.Health;
+                    else
+                        type = StaticMinimap.PickupType.Ammo;
+
+                    minimap.RegisterPickup(newItem, type);
+                }
+
                 config.currentCount++;
                 spawnedItems.Add(newItem);
-
-                Debug.Log($"Заспавнен {config.name}");
                 return;
             }
         }
@@ -139,10 +149,11 @@ public class SimplePickupSpawner : MonoBehaviour
                 tracker.pickupConfig = null;
                 tracker.weaponConfig = config;
 
+                if (minimap != null)
+                    minimap.RegisterPickup(newItem, StaticMinimap.PickupType.Weapon);
+
                 config.currentCount++;
                 spawnedItems.Add(newItem);
-
-                Debug.Log($"Заспавнен {config.name}");
                 return;
             }
         }
@@ -153,9 +164,17 @@ public class SimplePickupSpawner : MonoBehaviour
         Vector3 spawnPos = worldBounds.RandomPosition();
         spawnPos.y = spawnHeight;
 
-        // Проверка на препятствия
-        Collider[] obstacles = Physics.OverlapSphere(spawnPos, itemRadius, obstacleLayers);
-        if (obstacles.Length > 0)
+        // Проверка на препятствия на высоте спавна
+        if (Physics.OverlapSphere(spawnPos, itemRadius, obstacleLayers).Length > 0)
+            return Vector3.zero;
+
+        // Проверка лучом сверху
+        RaycastHit hit;
+        if (Physics.Raycast(spawnPos + Vector3.up * 10f, Vector3.down, out hit, 20f, obstacleLayers))
+            return Vector3.zero;
+
+        // Проверка пола
+        if (!Physics.Raycast(spawnPos, Vector3.down, out hit, 5f, LayerMask.GetMask("Default")))
             return Vector3.zero;
 
         // Проверка на другие пикапы
@@ -180,22 +199,15 @@ public class SimplePickupSpawner : MonoBehaviour
     public void OnPickupCollected(PickupConfig config)
     {
         if (config != null)
-        {
             config.currentCount--;
-            Debug.Log($"Подобран {config.name}. Осталось: {config.currentCount}/{config.maxCount}");
-        }
     }
 
     public void OnWeaponCollected(WeaponConfig config)
     {
         if (config != null)
-        {
             config.currentCount--;
-            Debug.Log($"Подобрано оружие {config.name}. Осталось: {config.currentCount}/{config.maxCount}");
-        }
     }
 
-    // Визуализация
     private void OnDrawGizmosSelected()
     {
         if (worldBounds != null && worldBounds.min != null && worldBounds.max != null)
@@ -208,17 +220,19 @@ public class SimplePickupSpawner : MonoBehaviour
     }
 }
 
-// Обновленный компонент отслеживания
 public class TrackedPickup : MonoBehaviour
 {
-    [HideInInspector] public SimplePickupSpawner spawner;
-    [HideInInspector] public SimplePickupSpawner.PickupConfig pickupConfig;
-    [HideInInspector] public SimplePickupSpawner.WeaponConfig weaponConfig;
+    [HideInInspector] public PickupSpawner spawner;
+    [HideInInspector] public PickupSpawner.PickupConfig pickupConfig;
+    [HideInInspector] public PickupSpawner.WeaponConfig weaponConfig;
 
     void OnDestroy()
     {
         if (spawner != null)
         {
+            if (spawner.minimap != null)
+                spawner.minimap.UnregisterPickup(gameObject);
+
             if (pickupConfig != null)
                 spawner.OnPickupCollected(pickupConfig);
             if (weaponConfig != null)
