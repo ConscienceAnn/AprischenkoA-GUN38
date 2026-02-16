@@ -6,9 +6,12 @@ public class HealthPickup : MonoBehaviour
 {
     public float amount = 50;
 
-    private void OnTriggerEnter(Collider other) {
+    private void OnTriggerEnter(Collider other)
+    {
         Health health = other.GetComponent<Health>();
-        if (health && health.IsLowHealth()) {
+        if (health != null)
+        {
+            // Лечим, даже если здоровье не низкое, но не больше максимума
             health.Heal(amount);
             Destroy(gameObject);
         }
