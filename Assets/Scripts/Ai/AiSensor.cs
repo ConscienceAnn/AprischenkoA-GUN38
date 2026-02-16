@@ -8,9 +8,9 @@ public class AiSensor : MonoBehaviour
 {
     public bool debug;
     public bool debugTargets;
-    public float distance = 10;
-    public float angle = 30;
-    public float height = 1.0f;
+    public float distance = 50f;
+    public float angle = 83.6f;
+    public float height = 8f;
     public Color meshColor = Color.red;
     public int scanFrequency = 30;
     public LayerMask layers;

@@ -14,6 +14,11 @@ public class AiIdleState : AiState
     }
 
     public void Update(AiAgent agent) {
+
+        //// Проверяем, видит ли сенсор игрока
+        //bool sensorSeesPlayer = agent.sensor.Objects.Contains(agent.playerTransform.gameObject);
+        //Debug.Log($"Sensor sees player: {sensorSeesPlayer}");
+
         if (agent.playerTransform.GetComponent<Health>().IsDead()) {
             return;
         }

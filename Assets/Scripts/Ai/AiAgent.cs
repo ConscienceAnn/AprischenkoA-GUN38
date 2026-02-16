@@ -31,6 +31,21 @@ public class AiAgent : MonoBehaviour
         targeting = GetComponent<AiTargetingSystem>();
         health = GetComponent<AiHealth>();
 
+
+        // НАЙТИ ИГРОКА
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerTransform = player.transform;
+            Debug.Log($"{gameObject.name} нашел игрока: {player.name}");
+        }
+        else
+        {
+            Debug.LogError($"{gameObject.name} НЕ нашел игрока! Проверьте тег Player");
+        }
+
+        stateMachine = new AiStateMachine(this);
+
         stateMachine = new AiStateMachine(this);
         stateMachine.RegisterState(new AiChasePlayerState());
         stateMachine.RegisterState(new AiDeathState());
