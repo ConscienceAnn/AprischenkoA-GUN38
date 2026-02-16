@@ -143,6 +143,22 @@ public class RaycastWeapon : MonoBehaviour
             if (hitBox) {
                 hitBox.OnRaycastHit(this, ray.direction);
             }
+            //новое
+            var destroyable = hitInfo.collider.GetComponentInParent<DestroyableObject>();
+            if (destroyable != null)
+            {
+                destroyable.TakeDamage(damage, hitInfo.point, ray.direction);
+            }
+            else
+            {
+                // Если объект на слое CanDestroy, но без компонента - добавляем автоматически
+                if (hitInfo.collider.gameObject.layer == LayerMask.NameToLayer("CanDestroy"))
+                {
+                    destroyable = hitInfo.collider.gameObject.AddComponent<DestroyableObject>();
+                    destroyable.TakeDamage(damage, hitInfo.point, ray.direction);
+                }
+            }
+            //новое
         }
 
         if (bullet.tracer) {

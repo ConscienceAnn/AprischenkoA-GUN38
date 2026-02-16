@@ -78,7 +78,7 @@ GameObject:
   - component: {fileID: 6990701928515675744}
   - component: {fileID: 1149143645819007373}
   m_Layer: 8
-  m_Name: Weapon_Assault
+  m_Name: Weapon_assault
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

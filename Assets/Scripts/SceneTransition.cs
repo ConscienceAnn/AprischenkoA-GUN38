@@ -5,6 +5,7 @@ public class SceneTransition : MonoBehaviour
 {
     [SerializeField] private string targetSceneName;
     [SerializeField] private AudioClip doorOpenSound;
+    [SerializeField] private LayerMask playerLayer;
 
     private Animator animator;
     private AudioSource audioSource;
@@ -104,32 +105,19 @@ public class SceneTransition : MonoBehaviour
     {
         Debug.Log($"=== OnTriggerEnter: {other.gameObject.name}, тег: {other.tag} ===");
 
-        if (other.CompareTag("Player"))
+        // Проверяем, что объект на слое игрока
+        if ((playerLayer.value & (1 << other.gameObject.layer)) != 0)
         {
-            Debug.Log("Игрок вошел в триггер!");
+            Debug.Log($"Объект на слое игрока: {other.gameObject.name}");
 
-            if (GameManager.Instance != null)
+            if (!isTransitioning)
             {
-                Debug.Log("GameManager.Instance найден");
-
-                if (!isTransitioning)
-                {
-                    Debug.Log("Начинаем переход, вызываем OpenDoor()");
-                    OpenDoor();
-                }
-                else
-                {
-                    Debug.Log("Переход уже выполняется, игнорируем");
-                }
-            }
-            else
-            {
-                Debug.LogError("GameManager.Instance = null!");
+                OpenDoor();
             }
         }
         else
         {
-            Debug.Log($"Не игрок, игнорируем (тег: {other.tag})");
+            Debug.Log($"Не игрок, слой: {LayerMask.LayerToName(other.gameObject.layer)}");
         }
     }
 
@@ -252,9 +240,11 @@ public class SceneTransition : MonoBehaviour
             Debug.LogWarning(" animator = null, ждем 1 секунду");
             yield return new WaitForSeconds(1f);
         }
+        yield return new WaitForSeconds(1.5f);
 
         Debug.Log($"Вызываем TransitionToScene({targetSceneName})");
         GameManager.Instance.TransitionToScene(targetSceneName);
+        Destroy(gameObject);
     }
 
     // Для проверки параметров в инспекторе во время игры

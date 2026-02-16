@@ -68,7 +68,9 @@ public class ActiveWeapon : MonoBehaviour
 
     public RaycastWeapon GetActiveWeapon()
     {
-        return GetWeapon(activeWeaponIndex);
+        if (activeWeaponIndex < 0 || activeWeaponIndex >= equipped_weapons.Length)
+            return null;
+        return equipped_weapons[activeWeaponIndex];
     }
 
     // ДЕЛАЕМ МЕТОД PUBLIC вместо private
@@ -104,6 +106,13 @@ public class ActiveWeapon : MonoBehaviour
     {
         var weapon = GetWeapon(activeWeaponIndex);
         if (rigController == null || reload == null) return;
+
+        if (weapon == null)
+        {
+            // Если нет оружия, просто выходим
+            return;
+        }
+
         bool notSprinting = rigController.GetCurrentAnimatorStateInfo(2).shortNameHash == Animator.StringToHash("not_sprinting");
         bool canFire = !isHolstered && notSprinting && !reload.isReloading;
         if (weapon)
@@ -121,10 +130,10 @@ public class ActiveWeapon : MonoBehaviour
             //weapon.UpdateWeapon(Time.deltaTime, crossHairTarget.position);
         }
 
-        //if (crossHairTarget != null)
-        //{
-        //    weapon.UpdateWeapon(Time.deltaTime, crossHairTarget.position);
-        //}
+        if (crossHairTarget != null)
+        {
+            weapon.UpdateWeapon(Time.deltaTime, crossHairTarget.position);
+        }
 
         if (Input.GetKeyDown(KeyCode.X))
         {
@@ -138,6 +147,18 @@ public class ActiveWeapon : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             SetActiveWeapon(WeaponSlot.Secondary);
+        }
+
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            Debug.Log($"=== ТЕКУЩЕЕ ОРУЖИЕ ===");
+            Debug.Log($"Active index: {activeWeaponIndex}");
+
+            var primary = GetWeapon(0);
+            Debug.Log($"Primary: {(primary != null ? primary.weaponName : "null")}");
+
+            var secondary = GetWeapon(1);
+            Debug.Log($"Secondary: {(secondary != null ? secondary.weaponName : "null")}");
         }
     }
 

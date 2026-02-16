@@ -307,8 +307,14 @@ public class GameManager : MonoBehaviour
             Debug.Log("Saved player data before transition");
         }
 
+        LoadingScreen.Instance.LoadScene(sceneName, () => {
+            // Этот код выполнится после загрузки
+            Debug.Log("Scene loaded!");
+        });
+
+
         // Загружаем новую сцену
-        SceneManager.LoadScene(sceneName);
+       // SceneManager.LoadScene(sceneName);
     }
 
     public void ResetPlayerData()
