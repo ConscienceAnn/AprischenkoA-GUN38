@@ -68,7 +68,7 @@ public class AiSensor : MonoBehaviour
         Vector3 origin = transform.position;
         Vector3 dest = obj.transform.position;
         Vector3 direction = dest - origin;
-        if (direction.y > height || direction.y < -0.01f) {
+        if (Mathf.Abs(direction.y) > height) {
             return false;
         }
 

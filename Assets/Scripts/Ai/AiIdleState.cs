@@ -9,26 +9,34 @@ public class AiIdleState : AiState
     }
 
     public void Enter(AiAgent agent) {
-        agent.weapons.DeactivateWeapon();
+        if (agent.weapons != null && agent.weapons.HasWeapon())
+        {
+            agent.weapons.DeactivateWeapon();
+        }
         agent.navMeshAgent.ResetPath();
     }
 
     public void Update(AiAgent agent) {
-        if (agent.playerTransform.GetComponent<Health>().IsDead()) {
+
+        // Проверяем, есть ли ссылка на игрока
+        if (agent.playerTransform == null)
+        {
+            Debug.LogError($"{agent.name}: playerTransform is NULL!");
             return;
         }
 
-        Vector3 playerDirection = agent.playerTransform.position - agent.transform.position;
-        if (playerDirection.magnitude > agent.config.maxSightDistance) {
-            return;
+        // Всегда пытаемся найти игрока, даже если не видим
+        if (agent.weapons.Count() > 0)
+        {
+            // Если есть оружие - ищем игрока
+            Debug.Log($"{agent.name} has weapon, switching to FindTarget");
+            agent.stateMachine.ChangeState(AiStateId.FindTarget);
         }
-
-        Vector3 agentDirection = agent.transform.forward;
-        playerDirection.Normalize();
-
-        float dotProduct = Vector3.Dot(playerDirection, agentDirection);
-        if (dotProduct > 0.0f) {
-            agent.stateMachine.ChangeState(AiStateId.ChasePlayer);
+        else
+        {
+            // Если нет оружия - сначала ищем оружие
+            Debug.Log($"{agent.name} no weapon, switching to FindWeapon");
+            agent.stateMachine.ChangeState(AiStateId.FindWeapon);
         }
     }
 

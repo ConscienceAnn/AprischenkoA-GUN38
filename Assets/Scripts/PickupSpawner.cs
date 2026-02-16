@@ -112,6 +112,18 @@ public class PickupSpawner : MonoBehaviour
             {
                 GameObject newItem = Instantiate(config.prefab, spawnPos, Quaternion.identity);
 
+                // Назначаем тег и слой
+                if (config.name.Contains("Аптечка") || config.prefab.name.Contains("Health"))
+                {
+                    newItem.tag = "Health";
+                    newItem.layer = LayerMask.NameToLayer("Pickup");
+                }
+                else
+                {
+                    newItem.tag = "Ammo";
+                    newItem.layer = LayerMask.NameToLayer("Pickup");
+                }
+
                 TrackedPickup tracker = newItem.AddComponent<TrackedPickup>();
                 tracker.spawner = this;
                 tracker.pickupConfig = config;
@@ -144,6 +156,10 @@ public class PickupSpawner : MonoBehaviour
             {
                 GameObject newItem = Instantiate(config.prefab, spawnPos, Quaternion.identity);
 
+                // ВАЖНО: Назначаем тег и слой
+                newItem.tag = "Weapon";
+                newItem.layer = LayerMask.NameToLayer("Pickup");
+
                 TrackedPickup tracker = newItem.AddComponent<TrackedPickup>();
                 tracker.spawner = this;
                 tracker.pickupConfig = null;
@@ -154,6 +170,8 @@ public class PickupSpawner : MonoBehaviour
 
                 config.currentCount++;
                 spawnedItems.Add(newItem);
+
+                Debug.Log($"Spawned weapon {newItem.name} with tag: {newItem.tag}, layer: {LayerMask.LayerToName(newItem.layer)}");
                 return;
             }
         }

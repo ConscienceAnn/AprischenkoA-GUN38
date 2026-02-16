@@ -66,10 +66,16 @@ public class AiWeapons : MonoBehaviour
     }
 
     public void SetFiring(bool enabled) {
-        if (enabled) {
-            currentWeapon.StartFiring();
-        } else {
-            currentWeapon.StopFiring();
+        if (currentWeapon != null) // Проверка!
+        {
+            if (enabled)
+            {
+                currentWeapon.StartFiring();
+            }
+            else
+            {
+                currentWeapon.StopFiring();
+            }
         }
     }
 
@@ -102,9 +108,12 @@ public class AiWeapons : MonoBehaviour
     }
 
     public void DeactivateWeapon() {
-        SetTarget(null);
-        SetFiring(false);
-        StartCoroutine(HolsterWeaponAnimation());
+        if (currentWeapon != null) // Проверка!
+        {
+            SetTarget(null);
+            SetFiring(false);
+            StartCoroutine(HolsterWeaponAnimation());
+        }
     }
 
     public void ReloadWeapon() {
