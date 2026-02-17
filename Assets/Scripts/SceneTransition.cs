@@ -105,10 +105,10 @@ public class SceneTransition : MonoBehaviour
     {
         Debug.Log($"=== OnTriggerEnter: {other.gameObject.name}, тег: {other.tag} ===");
 
-        // Проверяем, что объект на слое игрока
-        if ((playerLayer.value & (1 << other.gameObject.layer)) != 0)
+        
+        if (other.CompareTag("Player"))
         {
-            Debug.Log($"Объект на слое игрока: {other.gameObject.name}");
+            Debug.Log("Игрок вошел в триггер!");
 
             if (!isTransitioning)
             {
@@ -117,7 +117,7 @@ public class SceneTransition : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Не игрок, слой: {LayerMask.LayerToName(other.gameObject.layer)}");
+            Debug.Log($"Не игрок, игнорируем: {other.gameObject.name}");
         }
     }
 
@@ -240,7 +240,6 @@ public class SceneTransition : MonoBehaviour
             Debug.LogWarning(" animator = null, ждем 1 секунду");
             yield return new WaitForSeconds(1f);
         }
-        yield return new WaitForSeconds(1.5f);
 
         Debug.Log($"Вызываем TransitionToScene({targetSceneName})");
         GameManager.Instance.TransitionToScene(targetSceneName);

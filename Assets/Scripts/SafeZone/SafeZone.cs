@@ -5,7 +5,7 @@ public class SafeZone : MonoBehaviour
 {
     [Header("Settings")]
     public float pushForce = 15f;
-    public float pushCooldown = 0.5f; // Задержка между толчками
+    public float pushCooldown = 0.5f;
 
     [Header("Visual")]
     public Color zoneColor = new Color(0, 1, 0, 0.3f);
@@ -45,7 +45,6 @@ public class SafeZone : MonoBehaviour
 
     void Update()
     {
-        // Мерцание
         float t = Mathf.PingPong(Time.time * pulseSpeed, 1f);
         float currentAlpha = Mathf.Lerp(minAlpha, maxAlpha, t);
         Color newColor = zoneColor;
@@ -58,14 +57,15 @@ public class SafeZone : MonoBehaviour
         AiAgent agent = other.GetComponent<AiAgent>();
         if (agent != null && agent.enabled)
         {
-            // Проверяем таймер для этого врага
+            // Отключаем стрельбу
+            agent.weapons.SetFiring(false);
+
             float lastPushTime = 0f;
             if (enemyPushTimers.ContainsKey(agent))
             {
                 lastPushTime = enemyPushTimers[agent];
             }
 
-            // Если прошло достаточно времени - толкаем
             if (Time.time - lastPushTime > pushCooldown)
             {
                 PushEnemy(agent, other);
@@ -74,6 +74,7 @@ public class SafeZone : MonoBehaviour
         }
     }
 
+    // !!! ЗАМЕНИТЕ СТАРЫЙ МЕТОД НА ЭТОТ !!!
     void PushEnemy(AiAgent agent, Collider enemyCollider)
     {
         Vector3 awayFromZone = enemyCollider.transform.position - transform.position;
@@ -87,27 +88,31 @@ public class SafeZone : MonoBehaviour
 
         awayFromZone.Normalize();
 
-        // Только разворачиваем и толкаем, НЕ останавливаем навигацию
+        // Разворачиваем врага
         enemyCollider.transform.rotation = Quaternion.LookRotation(awayFromZone);
 
-        Rigidbody rb = enemyCollider.attachedRigidbody;
-        if (rb != null)
+        // Используем Warp для телепортации (работает даже с kinematic)
+        if (agent.navMeshAgent != null && agent.navMeshAgent.isOnNavMesh)
         {
-            rb.AddForce(awayFromZone * pushForce, ForceMode.Impulse);
+            Vector3 newPosition = enemyCollider.transform.position + awayFromZone * 3f;
+            agent.navMeshAgent.Warp(newPosition);
+        }
 
-            if (blockSound != null && !audioSource.isPlaying)
-            {
-                audioSource.PlayOneShot(blockSound);
-            }
+        if (blockSound != null && !audioSource.isPlaying)
+        {
+            audioSource.PlayOneShot(blockSound);
         }
     }
 
     void OnTriggerExit(Collider other)
     {
         AiAgent agent = other.GetComponent<AiAgent>();
-        if (agent != null && enemyPushTimers.ContainsKey(agent))
+        if (agent != null)
         {
-            enemyPushTimers.Remove(agent); // Очищаем таймер при выходе
+            if (enemyPushTimers.ContainsKey(agent))
+            {
+                enemyPushTimers.Remove(agent);
+            }
         }
 
         if (other.CompareTag("Player"))
