@@ -170,3 +170,7 @@ MonoBehaviour:
   cooldownTime: 3
   minRandomOffset: 0
   maxRandomOffset: 2
+  raiseAnimationTime: 0.5
+  spikesRaiseSound: {fileID: 8300000, guid: 0d3993a8b13027d4187ced153b297142, type: 3}
+  playerPainSound: {fileID: 8300000, guid: 6807d31e5cf6675468e0e75d1dc43d73, type: 3}
+  soundVolume: 0.8

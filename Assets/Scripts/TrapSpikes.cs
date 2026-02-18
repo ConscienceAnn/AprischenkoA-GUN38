@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class TrapSpikes : MonoBehaviour
 {
@@ -6,13 +7,23 @@ public class TrapSpikes : MonoBehaviour
     [SerializeField] private float damageAmount = 20f;
 
     [Header("Настройки времени")]
-    [SerializeField] private float activeTime = 2f; // сколько времени шипы подняты
-    [SerializeField] private float cooldownTime = 3f; // время между подъемами
-    [SerializeField] private float minRandomOffset = 0f; // для разнобоя между ловушками
+    [SerializeField] private float activeTime = 2f;
+    [SerializeField] private float cooldownTime = 3f;
+    [SerializeField] private float minRandomOffset = 0f;
     [SerializeField] private float maxRandomOffset = 2f;
+
+    [Header("Настройки анимации")]
+    [SerializeField] private float raiseAnimationTime = 0.5f;
+
+    [Header("Звуки ловушки")]
+    [SerializeField] private AudioClip spikesRaiseSound;    // Звук подъема шипов
+    [SerializeField] private AudioClip playerPainSound;     // Звук крика игрока (будет исходить из ловушки)
+    [Range(0f, 1f)]
+    [SerializeField] private float soundVolume = 0.8f;
 
     private Animator animator;
     private Collider damageCollider;
+    private AudioSource audioSource;
     private bool isActive = false;
     private float randomOffset;
 
@@ -21,11 +32,36 @@ public class TrapSpikes : MonoBehaviour
         animator = GetComponent<Animator>();
         damageCollider = GetComponent<Collider>();
 
-        // Случайное смещение для каждой ловушки
-        randomOffset = Random.Range(minRandomOffset, maxRandomOffset);
+        // Настраиваем AudioSource для 3D звука
+        SetupAudioSource();
 
-        // Запускаем цикл ловушки
-        InvokeRepeating(nameof(StartTrapCycle), randomOffset, cooldownTime + activeTime);
+        if (animator == null)
+            Debug.LogError("Animator not found on TrapSpikes!");
+
+        if (damageCollider == null)
+            Debug.LogError("Collider not found on TrapSpikes!");
+        else
+            damageCollider.enabled = false;
+
+        randomOffset = Random.Range(minRandomOffset, maxRandomOffset);
+        InvokeRepeating(nameof(StartTrapCycle), randomOffset, cooldownTime + activeTime + raiseAnimationTime);
+    }
+
+    private void SetupAudioSource()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // Настройки для 3D звука (слышно только рядом)
+        audioSource.spatialBlend = 1f;           // Полностью 3D звук
+        audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        audioSource.minDistance = 0.2f;             // Максимальная громкость в радиусе 2 метров
+        audioSource.maxDistance = 0.7f;             // За пределами 15 метров не слышно
+        audioSource.volume = soundVolume;
+        audioSource.playOnAwake = false;
     }
 
     private void StartTrapCycle()
@@ -36,22 +72,22 @@ public class TrapSpikes : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator TrapCycle()
+    private IEnumerator TrapCycle()
     {
-        // Запускаем анимацию подъема
+        // Воспроизводим звук подъема шипов
+        if (spikesRaiseSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(spikesRaiseSound, soundVolume);
+        }
+
         animator.SetTrigger("Raise");
+        yield return new WaitForSeconds(raiseAnimationTime);
 
-        // Ждем пока шипы поднимутся (можно настроить под вашу анимацию)
-        yield return new WaitForSeconds(0.5f);
-
-        // Шипы подняты - включаем урон
         isActive = true;
         damageCollider.enabled = true;
 
-        // Ждем пока шипы активны
         yield return new WaitForSeconds(activeTime);
 
-        // Опускаем шипы
         animator.SetTrigger("Lower");
         isActive = false;
         damageCollider.enabled = false;
@@ -59,22 +95,21 @@ public class TrapSpikes : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Проверяем что шипы активны и это игрок
         if (isActive && other.CompareTag("Player"))
         {
             PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
             if (playerHealth != null)
             {
                 playerHealth.TakeDamageFromTrap(damageAmount);
-                Debug.Log($"Ловушка нанесла {damageAmount} урона игроку");
+
+                // Воспроизводим звук крика от ловушки (3D звук с позиции ловушки)
+                if (playerPainSound != null && audioSource != null)
+                {
+                    audioSource.PlayOneShot(playerPainSound, soundVolume);
+                    Debug.Log("Pain sound played from trap position");
+                }
             }
         }
     }
 
-    // Для визуализации в редакторе
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(transform.position + Vector3.up, new Vector3(2f, 1f, 2f));
-    }
 }
