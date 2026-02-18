@@ -492,7 +492,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 43.000004
+      value: 194.28952
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
@@ -502,7 +502,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -168
+      value: -256.31534
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
@@ -603,6 +603,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ed3896bbc377db34bad5d2973b03826b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
@@ -746,6 +751,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1141619523866567650}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ed3896bbc377db34bad5d2973b03826b,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1563589654404602112}
     - targetCorrespondingSourceObject: {fileID: -2610704896538430656, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
       insertIndex: -1
@@ -1055,7 +1064,7 @@ MonoBehaviour:
     m_Bits: 768
   occlusionLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 4097
 --- !u!114 &131026227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1340,6 +1349,23 @@ MonoBehaviour:
   minSpeed: 0.5
   minDistance: 3
   maxDistance: 20
+--- !u!114 &1563589654404602112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2690162990217472633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16c14fb0d4d26764db21091facd9a19a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bloodDecalPrefab: {fileID: 3179201750964339721, guid: efaa424b5de060a4fb6cb1f7f31f97e3,
+    type: 3}
+  healthThreshold: 0.4
+  spawnInterval: 0.5
+  decalLifetime: 5
 --- !u!4 &2880364383649203587 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8183861823611301205, guid: ed3896bbc377db34bad5d2973b03826b,
