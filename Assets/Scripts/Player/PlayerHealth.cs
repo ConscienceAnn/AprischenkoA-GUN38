@@ -118,4 +118,11 @@ public class PlayerHealth : Health
             Debug.Log($"Vignette updated to {percent * 0.6f}");
         }
     }
+
+    public void TakeDamageFromTrap(float damage)
+    {
+        // Вызываем существующий метод TakeDamage из родительского класса
+        TakeDamage(damage, Vector3.zero);
+        Debug.Log($"Player took {damage} damage from trap. Health: {currentHealth}");
+    }
 }
