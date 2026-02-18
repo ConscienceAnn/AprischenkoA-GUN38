@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 public class StaticMinimap : MonoBehaviour
 {
@@ -65,8 +66,8 @@ public class StaticMinimap : MonoBehaviour
         FindWorldBounds();
         SetupCameraPosition();
         SetupRenderTexture();
-        FindPlayer();
-        CreatePlayerIcon();
+        // FindPlayer();
+        // CreatePlayerIcon();
         FindAllObjects();
         FindExitDoor();
     }
@@ -130,9 +131,21 @@ public class StaticMinimap : MonoBehaviour
 
     void FindPlayer()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-            playerTransform = player.transform;
+        playerTransform = null;
+
+        foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            if (player.GetComponent<CharacterController>() != null &&
+                player.GetComponent<AiAgent>() == null)
+            {
+                playerTransform = player.transform;
+                Debug.Log($"Player found: {player.name}");
+                return;
+            }
+        }
+
+        if (playerTransform == null)
+            Debug.LogWarning("Player with CharacterController not found!");
     }
 
     void CreatePlayerIcon()
@@ -195,6 +208,16 @@ public class StaticMinimap : MonoBehaviour
 
     void LateUpdate()
     {
+        if (playerTransform == null) FindPlayer();
+
+        // Если нашли игрока, но иконки еще нет - создаем
+
+        if (playerTransform != null && playerIconRect == null)
+        {
+            Debug.Log("Игрок найден, создаем иконку");
+            CreatePlayerIcon();
+        }
+
         if (playerTransform != null && playerIconRect != null)
             playerIconRect.anchoredPosition = WorldToMinimapPos(playerTransform.position);
 
