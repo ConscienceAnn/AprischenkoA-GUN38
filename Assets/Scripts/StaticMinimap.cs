@@ -21,6 +21,7 @@ public class StaticMinimap : MonoBehaviour
     public Sprite healthIcon;
     public Sprite ammoIcon;
     public Sprite weaponIcon;
+    public Sprite meleeWeaponIcon;
 
     [Header("Цвета")]
     public Color playerColor = Color.green;
@@ -183,6 +184,14 @@ public class StaticMinimap : MonoBehaviour
         WeaponPickup[] weapons = FindObjectsOfType<WeaponPickup>();
         foreach (var weapon in weapons)
             AddIcon(weapon.gameObject, weaponIcon, weaponColor, pickupSize);
+
+        MeleeWeaponPickup[] meleeWeapons = FindObjectsOfType<MeleeWeaponPickup>();
+        foreach (var meleeWeapon in meleeWeapons)
+        {
+            AddIcon(meleeWeapon.gameObject, meleeWeaponIcon, weaponColor, pickupSize);
+        }
+
+
     }
 
     void AddIcon(GameObject target, Sprite sprite, Color color, float size)

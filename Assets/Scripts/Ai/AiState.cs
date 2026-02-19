@@ -10,7 +10,9 @@ public enum AiStateId {
     AttackTarget,
     FindTarget,
     FindHealth,
-    FindAmmo
+    FindAmmo,
+    FindMeleeWeapon,
+    MeleeAttackTarget
 }
 
 public interface AiState

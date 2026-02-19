@@ -162,6 +162,7 @@ MonoBehaviour:
   healthIcon: {fileID: 21300000, guid: 866e60936b252c5468f0d324f3ba7ae5, type: 3}
   ammoIcon: {fileID: 21300000, guid: 9c6e337c7ef38b0478f6a52f8854a69a, type: 3}
   weaponIcon: {fileID: 21300000, guid: 6fa365c0ceed64a49836c8da6dc0fcf8, type: 3}
+  meleeWeaponIcon: {fileID: 21300000, guid: 9c63d6a9ca485ec489eb598b0edc441f, type: 3}
   playerColor: {r: 0.14901961, g: 0.14901961, b: 0.5568628, a: 1}
   enemyColor: {r: 1, g: 0, b: 0, a: 1}
   healthColor: {r: 0, g: 1, b: 0, a: 1}

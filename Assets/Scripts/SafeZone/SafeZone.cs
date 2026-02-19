@@ -25,8 +25,11 @@ public class SafeZone : MonoBehaviour
     void Start()
     {
         Renderer renderer = GetComponent<Renderer>();
-        zoneMaterial = renderer.material;
-        zoneMaterial.color = zoneColor;
+        if (renderer != null)
+        {
+            zoneMaterial = renderer.material;
+            zoneMaterial.color = zoneColor;
+        }
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
@@ -45,20 +48,32 @@ public class SafeZone : MonoBehaviour
 
     void Update()
     {
-        float t = Mathf.PingPong(Time.time * pulseSpeed, 1f);
-        float currentAlpha = Mathf.Lerp(minAlpha, maxAlpha, t);
-        Color newColor = zoneColor;
-        newColor.a = currentAlpha;
-        zoneMaterial.color = newColor;
+        if (zoneMaterial != null)
+        {
+            float t = Mathf.PingPong(Time.time * pulseSpeed, 1f);
+            float currentAlpha = Mathf.Lerp(minAlpha, maxAlpha, t);
+            Color newColor = zoneColor;
+            newColor.a = currentAlpha;
+            zoneMaterial.color = newColor;
+        }
     }
 
     void OnTriggerStay(Collider other)
     {
+        // Проверяем по тегу Agent (как вы предложили)
+        if (!other.CompareTag("Agent")) return;
+
         AiAgent agent = other.GetComponent<AiAgent>();
-        if (agent != null && agent.enabled)
+
+        // Проверяем, существует ли агент и включен ли он
+        if (agent != null && agent.enabled && agent.isActiveAndEnabled)
         {
-            // Отключаем стрельбу
-            agent.weapons.SetFiring(false);
+            // Отключаем стрельбу ТОЛЬКО если есть компонент weapons
+            if (agent.weapons != null)
+            {
+                agent.weapons.SetFiring(false);
+            }
+            // Для MeleeEnemy weapons = null, поэтому просто пропускаем
 
             float lastPushTime = 0f;
             if (enemyPushTimers.ContainsKey(agent))
@@ -74,9 +89,11 @@ public class SafeZone : MonoBehaviour
         }
     }
 
-    // !!! ЗАМЕНИТЕ СТАРЫЙ МЕТОД НА ЭТОТ !!!
     void PushEnemy(AiAgent agent, Collider enemyCollider)
     {
+        // Проверяем, существует ли агент и коллайдер
+        if (agent == null || enemyCollider == null) return;
+
         Vector3 awayFromZone = enemyCollider.transform.position - transform.position;
         awayFromZone.y = 0;
 
@@ -89,16 +106,25 @@ public class SafeZone : MonoBehaviour
         awayFromZone.Normalize();
 
         // Разворачиваем врага
-        enemyCollider.transform.rotation = Quaternion.LookRotation(awayFromZone);
-
-        // Используем Warp для телепортации (работает даже с kinematic)
-        if (agent.navMeshAgent != null && agent.navMeshAgent.isOnNavMesh)
+        if (enemyCollider.transform != null)
         {
-            Vector3 newPosition = enemyCollider.transform.position + awayFromZone * 3f;
-            agent.navMeshAgent.Warp(newPosition);
+            enemyCollider.transform.rotation = Quaternion.LookRotation(awayFromZone);
         }
 
-        if (blockSound != null && !audioSource.isPlaying)
+        // Используем Warp для телепортации (работает даже с kinematic)
+        if (agent.navMeshAgent != null && agent.navMeshAgent.isOnNavMesh && agent.navMeshAgent.enabled)
+        {
+            Vector3 newPosition = enemyCollider.transform.position + awayFromZone * 3f;
+
+            // Проверяем, что новая позиция на NavMesh
+            UnityEngine.AI.NavMeshHit hit;
+            if (UnityEngine.AI.NavMesh.SamplePosition(newPosition, out hit, 5f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                agent.navMeshAgent.Warp(hit.position);
+            }
+        }
+
+        if (blockSound != null && audioSource != null && !audioSource.isPlaying)
         {
             audioSource.PlayOneShot(blockSound);
         }
@@ -106,6 +132,9 @@ public class SafeZone : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
+        // Проверяем по тегу Agent
+        if (!other.CompareTag("Agent")) return;
+
         AiAgent agent = other.GetComponent<AiAgent>();
         if (agent != null)
         {
@@ -114,11 +143,6 @@ public class SafeZone : MonoBehaviour
                 enemyPushTimers.Remove(agent);
             }
         }
-
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("Вы покинули безопасную зону");
-        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -126,10 +150,22 @@ public class SafeZone : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             Debug.Log("Вы вошли в безопасную зону!");
-            if (enterSound != null)
+            if (enterSound != null && audioSource != null)
             {
                 audioSource.PlayOneShot(enterSound);
             }
         }
+
+        // Можно добавить лог для агентов
+        if (other.CompareTag("Agent"))
+        {
+            Debug.Log("Враг вошел в безопасную зону");
+        }
+    }
+
+    // Очистка словаря при уничтожении объекта
+    void OnDestroy()
+    {
+        enemyPushTimers.Clear();
     }
 }

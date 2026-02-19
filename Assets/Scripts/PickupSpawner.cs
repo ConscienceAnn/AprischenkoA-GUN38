@@ -20,6 +20,7 @@ public class PickupSpawner : MonoBehaviour
         public GameObject prefab;
         public int maxCount = 2;
         public int currentCount = 0;
+        public bool isMelee = false; 
     }
 
     [Header("Префабы пикапов")]
@@ -29,9 +30,13 @@ public class PickupSpawner : MonoBehaviour
     [Header("Оружие")]
     public WeaponConfig[] weapons = new WeaponConfig[]
     {
-        new WeaponConfig { name = "Пистолет", maxCount = 2 },
-        new WeaponConfig { name = "Дробовик", maxCount = 2 },
-        new WeaponConfig { name = "Винтовка", maxCount = 1 }
+        // Обычное оружие (тег "Weapon")
+        new WeaponConfig { name = "Пистолет", maxCount = 2, isMelee = false },
+        new WeaponConfig { name = "Дробовик", maxCount = 2, isMelee = false },
+        new WeaponConfig { name = "Винтовка", maxCount = 1, isMelee = false },
+
+        // Ближнее оружие (тег "MeleeWeapon")
+        new WeaponConfig { name = "Нож", maxCount = 2, isMelee = true }
     };
 
     [Header("Границы мира")]
@@ -76,6 +81,14 @@ public class PickupSpawner : MonoBehaviour
 
                 if (weapons[i].prefab == null)
                     weapons[i].prefab = Resources.Load<GameObject>("Pickups/" + weapons[i].name);
+               
+                // Специальная проверка для ножа
+                if (weapons[i].isMelee && weapons[i].prefab == null)
+                {
+                    weapons[i].prefab = Resources.Load<GameObject>("Pickups/MeleeWeapon");
+                    if (weapons[i].prefab == null)
+                        Debug.LogWarning($"Префаб для {weapons[i].name} не найден!");
+                }
             }
         }
 
@@ -156,8 +169,17 @@ public class PickupSpawner : MonoBehaviour
             {
                 GameObject newItem = Instantiate(config.prefab, spawnPos, Quaternion.identity);
 
-                // ВАЖНО: Назначаем тег и слой
-                newItem.tag = "Weapon";
+                if (config.isMelee)
+                {
+                    newItem.tag = "MeleeWeapon"; // Для ближнего оружия
+                    Debug.Log($"Spawned MELEE weapon: {config.name} with tag: MeleeWeapon");
+                }
+                else
+                {
+                    newItem.tag = "Weapon"; // Для обычного оружия
+                    Debug.Log($"Spawned RANGED weapon: {config.name} with tag: Weapon");
+                }
+
                 newItem.layer = LayerMask.NameToLayer("Pickup");
 
                 TrackedPickup tracker = newItem.AddComponent<TrackedPickup>();

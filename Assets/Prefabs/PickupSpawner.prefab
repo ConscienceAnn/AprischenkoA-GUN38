@@ -61,16 +61,25 @@ MonoBehaviour:
       type: 3}
     maxCount: 2
     currentCount: 0
+    isMelee: 0
   - name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A"
     prefab: {fileID: 8312407600016623989, guid: ba829a98257904842932a4e402865f17,
       type: 3}
     maxCount: 2
     currentCount: 0
+    isMelee: 0
   - name: "\u0412\u0438\u043D\u0442\u043E\u0432\u043A\u0430"
     prefab: {fileID: 8490749860911160484, guid: 2321679cee8d0d9448426b7aaeffc1b0,
       type: 3}
     maxCount: 1
     currentCount: 0
+    isMelee: 0
+  - name: "\u041D\u043E\u0436"
+    prefab: {fileID: 1694428912244220551, guid: 051dd2a7790323f4e93ebdb4003ef02d,
+      type: 3}
+    maxCount: 2
+    currentCount: 0
+    isMelee: 1
   worldBounds: {fileID: 0}
   obstacleLayers:
     serializedVersion: 2
@@ -79,3 +88,4 @@ MonoBehaviour:
   checkInterval: 2
   maxAttempts: 100
   spawnHeight: 2
+  minimap: {fileID: 0}

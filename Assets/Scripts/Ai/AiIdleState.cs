@@ -25,19 +25,52 @@ public class AiIdleState : AiState
             return;
         }
 
-        // Всегда пытаемся найти игрока, даже если не видим
-        if (agent.weapons.Count() > 0)
+        // Определяем тип врага - есть ли у него MeleeCombat
+        bool isMelee = agent.GetComponent<MeleeCombat>() != null;
+
+        if (isMelee)
         {
-            // Если есть оружие - ищем игрока
-            Debug.Log($"{agent.name} has weapon, switching to FindTarget");
-            agent.stateMachine.ChangeState(AiStateId.FindTarget);
+            // ЛОГИКА ДЛЯ БЛИЖНЕГО БОЯ
+            MeleeWeapon weapon = agent.GetComponentInChildren<MeleeWeapon>();
+
+            if (weapon == null)
+            {
+                // Нет оружия - ищем пикап с ножом
+                Debug.Log($"{agent.name}: No melee weapon, switching to FindMeleeWeapon");
+                agent.stateMachine.ChangeState(AiStateId.FindMeleeWeapon);
+                return;
+            }
+            else
+            {
+                // Есть оружие - ищем игрока
+                if (agent.sensor != null && agent.sensor.IsInSight(agent.playerTransform.gameObject))
+                {
+                    Debug.Log($"{agent.name}: Has weapon and sees player, switching to ChasePlayer");
+                    agent.stateMachine.ChangeState(AiStateId.FindTarget);
+                    return;
+                }
+            }
         }
         else
         {
-            // Если нет оружия - сначала ищем оружие
-            Debug.Log($"{agent.name} no weapon, switching to FindWeapon");
-            agent.stateMachine.ChangeState(AiStateId.FindWeapon);
+            // ЛОГИКА ДЛЯ СТРЕЛКОВОГО ОРУЖИЯ (старые враги)
+            // Проверяем, есть ли оружие
+            if (agent.weapons != null && agent.weapons.Count() > 0)
+            {
+                // Если есть оружие - ищем игрока
+                if (agent.sensor != null && agent.sensor.IsInSight(agent.playerTransform.gameObject))
+                {
+                    agent.stateMachine.ChangeState(AiStateId.FindTarget);
+                }
+            }
+            else
+            {
+                // Если нет оружия - ищем оружие
+                agent.stateMachine.ChangeState(AiStateId.FindWeapon);
+            }
         }
+
+
     }
 
     public void Exit(AiAgent agent) {
