@@ -2,13 +2,16 @@ using UnityEngine;
 
 public class SimpleBloodTrail : MonoBehaviour
 {
-    [Header("Настройки")]
-    public GameObject bloodDecalPrefab;  // Префаб с декалью крови
-    public float healthThreshold = 0.4f;  // 40% здоровья
-    public float spawnInterval = 0.5f;    // Интервал между следами
-    public float decalLifetime = 5f;      // Время жизни следа
+    public Sprite bloodIcon;
 
-    private AiHealth healthSystem;     // ваша система здоровья
+    [Header("Настройки")]
+    public float healthThreshold = 0.4f;
+
+    [Header("Рандомные интервалы")]
+    public float minSpawnInterval = 0.3f;
+    public float maxSpawnInterval = 1.2f;
+
+    private AiHealth healthSystem;
     private float nextSpawnTime;
     private bool isBleeding = false;
 
@@ -19,39 +22,44 @@ public class SimpleBloodTrail : MonoBehaviour
 
     void Update()
     {
-        // Проверяем здоровье только раз в кадр (это быстро)
         float healthPercent = (float)healthSystem.currentHealth / healthSystem.maxHealth;
         bool shouldBleed = healthPercent <= healthThreshold && healthPercent > 0;
 
-        // Если состояние изменилось
         if (shouldBleed != isBleeding)
         {
             isBleeding = shouldBleed;
             if (isBleeding)
-                nextSpawnTime = Time.time + spawnInterval; // Сбрасываем таймер
+                nextSpawnTime = Time.time + Random.Range(0.1f, 0.5f);
         }
 
-        // Спавним кровь если нужно
         if (isBleeding && Time.time >= nextSpawnTime)
         {
             SpawnBlood();
-            nextSpawnTime = Time.time + spawnInterval;
+            nextSpawnTime = Time.time + Random.Range(minSpawnInterval, maxSpawnInterval);
         }
     }
 
     void SpawnBlood()
     {
-        // Простой Raycast вниз
         RaycastHit hit;
-        if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out hit, 2f))
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 2f))
         {
-            // Спавним кровь
-            GameObject blood = Instantiate(bloodDecalPrefab,
-                hit.point + Vector3.up * 0.01f,
-                Quaternion.Euler(0, Random.Range(0, 360), 0)); // Случайный поворот
+            GameObject blood = new GameObject("Blood");
+            SpriteRenderer sr = blood.AddComponent<SpriteRenderer>();
+            sr.sprite = bloodIcon;
+            sr.color = Color.red;
 
-            // Уничтожаем через время
-            Destroy(blood, decalLifetime);
+            float size = Random.Range(0.02f, 0.1f);
+            blood.transform.localScale = new Vector3(size, size, 1);
+
+            // Небольшое случайное смещение
+            Vector3 randomOffset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
+            blood.transform.position = hit.point + Vector3.up * 0.01f + randomOffset;
+
+            blood.transform.rotation = Quaternion.Euler(90, Random.Range(0, 360), 0);
+
+            float lifetime = Random.Range(4f, 7f);
+            Destroy(blood, lifetime);
         }
     }
 }

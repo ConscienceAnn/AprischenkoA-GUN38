@@ -1361,11 +1361,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16c14fb0d4d26764db21091facd9a19a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bloodDecalPrefab: {fileID: 3179201750964339721, guid: efaa424b5de060a4fb6cb1f7f31f97e3,
-    type: 3}
-  healthThreshold: 0.4
+  bloodIcon: {fileID: 21300000, guid: 9c820bd05f4b6dc4caee8794961142c3, type: 3}
   spawnInterval: 0.5
-  decalLifetime: 5
 --- !u!4 &2880364383649203587 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8183861823611301205, guid: ed3896bbc377db34bad5d2973b03826b,
