@@ -119,7 +119,7 @@ MonoBehaviour:
   holsterSocket: 1
   layerMask:
     serializedVersion: 2
-    m_Bits: 9217
+    m_Bits: 13313
   isFiring: 0
   debug: 0
   fireRate: 5
@@ -130,13 +130,17 @@ MonoBehaviour:
   clipSize: 6
   clipCount: 2
   damage: 10
-  animator: {fileID: 22100000, guid: 59bb25011bd5ad149abb5599a43b5aa7, type: 2}
   muzzleFlash:
   - {fileID: 24614648859853038}
   - {fileID: 6630508201644929534}
   hitEffect: {fileID: 8294838127210041830}
   tracerEffect: {fileID: 1296856523995080041, guid: 80f7783e3b4f19d46899e3883740b660,
     type: 3}
+  buildingHitEffect: {fileID: 5880797563141009103, guid: 265d3a5ba69981a4698ceabcedf368b0,
+    type: 3}
+  shootSound: {fileID: 8300000, guid: 34564da7a81b8bb4fae4d32f30d1b5bf, type: 3}
+  shootVolume: 0.8
+  animator: {fileID: 22100000, guid: 59bb25011bd5ad149abb5599a43b5aa7, type: 2}
   raycastOrigin: {fileID: 5121350558847278068}
   recoil: {fileID: 0}
   magazine: {fileID: 6749567060864312762}

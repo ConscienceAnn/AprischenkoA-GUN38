@@ -39,17 +39,15 @@ public class PickupSpawner : MonoBehaviour
     [Header("Границы мира")]
     public WorldBounds worldBounds;
 
-    [Header("Слои")]
-    public LayerMask groundLayer = 1; // Слой пола
-    public LayerMask buildingLayer; // ТОЛЬКО здания
-    public LayerMask obstacleLayer; // Другие препятствия (камни, ящики)
+    [Header("Настройки спавна")]
+    public float checkInterval = 0.3f;        // Как часто проверять
+    public int maxAttempts = 30;              // Максимум попыток на спавн
+    public float spawnHeight = 2f;            // Высота спавна
+    public float minDistanceBetweenItems = 2f; // Мин расстояние между пикапами
+    public float buildingCheckRadius = 1.5f;  // Радиус проверки зданий
 
-    [Header("Настройки")]
-    public float checkInterval = 0.5f;
-    public int maxAttempts = 100;
-    public float spawnHeight = 2f;
-    public float itemRadius = 0.8f;
-    public float minDistanceBetweenItems = 2f;
+    [Header("Слои")]
+    public LayerMask groundLayer = 1;          // Слой пола (Default)
 
     private List<GameObject> spawnedItems = new List<GameObject>();
 
@@ -61,9 +59,7 @@ public class PickupSpawner : MonoBehaviour
         if (worldBounds == null)
             worldBounds = FindObjectOfType<WorldBounds>();
 
-        // Загружаем префабы
         LoadPrefabs();
-
         StartCoroutine(SpawnLoop());
     }
 
@@ -96,24 +92,31 @@ public class PickupSpawner : MonoBehaviour
     {
         while (true)
         {
+            bool spawnedAnything = false;
+
             if (healthPickup.currentCount < healthPickup.maxCount)
-                TrySpawnPickup(healthPickup);
+                if (TrySpawnPickup(healthPickup)) spawnedAnything = true;
 
             if (ammoPickup.currentCount < ammoPickup.maxCount)
-                TrySpawnPickup(ammoPickup);
+                if (TrySpawnPickup(ammoPickup)) spawnedAnything = true;
 
             foreach (var weapon in weapons)
             {
                 if (weapon.currentCount < weapon.maxCount)
-                    TrySpawnWeapon(weapon);
+                    if (TrySpawnWeapon(weapon)) spawnedAnything = true;
             }
 
             CleanupDestroyed();
-            yield return new WaitForSeconds(checkInterval);
+
+            // Динамический интервал: если ничего не заспавнилось - ждем меньше
+            if (!spawnedAnything)
+                yield return new WaitForSeconds(checkInterval * 0.5f);
+            else
+                yield return new WaitForSeconds(checkInterval);
         }
     }
 
-    void TrySpawnPickup(PickupConfig config)
+    bool TrySpawnPickup(PickupConfig config)
     {
         for (int i = 0; i < maxAttempts; i++)
         {
@@ -122,6 +125,7 @@ public class PickupSpawner : MonoBehaviour
             {
                 GameObject newItem = Instantiate(config.prefab, spawnPos, Quaternion.identity);
 
+                // Назначаем тег и слой
                 if (config.name.Contains("Аптечка") || config.prefab.name.Contains("Health"))
                 {
                     newItem.tag = "Health";
@@ -146,12 +150,16 @@ public class PickupSpawner : MonoBehaviour
 
                 config.currentCount++;
                 spawnedItems.Add(newItem);
-                return;
+
+                // Визуальная отладка
+                Debug.DrawLine(spawnPos, spawnPos + Vector3.up * 2, Color.green, 2f);
+                return true;
             }
         }
+        return false;
     }
 
-    void TrySpawnWeapon(WeaponConfig config)
+    bool TrySpawnWeapon(WeaponConfig config)
     {
         for (int i = 0; i < maxAttempts; i++)
         {
@@ -174,10 +182,11 @@ public class PickupSpawner : MonoBehaviour
                 config.currentCount++;
                 spawnedItems.Add(newItem);
 
-                Debug.Log($"Spawned weapon {newItem.name}");
-                return;
+                Debug.DrawLine(spawnPos, spawnPos + Vector3.up * 2, Color.blue, 2f);
+                return true;
             }
         }
+        return false;
     }
 
     Vector3 GetValidSpawnPosition()
@@ -185,44 +194,22 @@ public class PickupSpawner : MonoBehaviour
         Vector3 spawnPos = worldBounds.RandomPosition();
         spawnPos.y = spawnHeight;
 
-        // 1. Проверка пола (ОБЯЗАТЕЛЬНО)
+        // 1. БЫСТРАЯ ПРОВЕРКА ПОЛА (обязательно)
         RaycastHit groundHit;
         if (!Physics.Raycast(spawnPos, Vector3.down, out groundHit, 5f, groundLayer))
-        {
-            Debug.Log($"Нет пола в {spawnPos}");
             return Vector3.zero;
-        }
 
-        // 2. Проверка зданий (ТОЛЬКО здания)
-        if (buildingLayer != 0 && Physics.CheckSphere(spawnPos, itemRadius, buildingLayer))
-        {
-            Debug.Log($"Мешает здание в {spawnPos}");
+        // 2. БЫСТРАЯ ПРОВЕРКА НА ЗДАНИЯ (только одна проверка)
+        if (Physics.CheckSphere(spawnPos, buildingCheckRadius, LayerMask.GetMask("Building")))
             return Vector3.zero;
-        }
 
-        // 3. Проверка других препятствий (камни, ящики)
-        if (obstacleLayer != 0 && Physics.CheckSphere(spawnPos, itemRadius, obstacleLayer))
-        {
-            Debug.Log($"Мешает препятствие в {spawnPos}");
-            return Vector3.zero;
-        }
-
-        // 4. Проверка расстояния до других пикапов
+        // 3. БЫСТРАЯ ПРОВЕРКА НА ДРУГИЕ ПИКАПЫ (через список)
         foreach (var item in spawnedItems)
         {
-            if (item != null)
-            {
-                float dist = Vector3.Distance(spawnPos, item.transform.position);
-                if (dist < minDistanceBetweenItems)
-                {
-                    Debug.Log($"Слишком близко к пикапу {item.name}: {dist}");
-                    return Vector3.zero;
-                }
-            }
+            if (item != null && Vector3.Distance(spawnPos, item.transform.position) < minDistanceBetweenItems)
+                return Vector3.zero;
         }
 
-        // ВСЁ ХОРОШО - МОЖНО СПАВНИТЬ
-        Debug.Log($"Найдено место: {spawnPos}");
         return spawnPos;
     }
 
