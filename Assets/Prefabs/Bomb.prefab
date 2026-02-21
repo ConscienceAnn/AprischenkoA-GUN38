@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8506362215999761413}
   - component: {fileID: 7559527442812232788}
   - component: {fileID: 3019371209140383587}
+  - component: {fileID: -769196642626048854}
   m_Layer: 0
   m_Name: Bomb
   m_TagString: Untagged
@@ -26,13 +27,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3176270818295094855}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 1.23, z: -3.98}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!212 &7559527442812232788
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -106,3 +107,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 1.9904737
   m_Center: {x: -0.050504923, y: -0.31507492, z: -0.21803331}
+--- !u!114 &-769196642626048854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3176270818295094855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a999774d52f83b147a272a4677a89df2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 10
+  explosionRadius: 3
+  explosionEffect: {fileID: 725748389856807714, guid: 4bda94453d2ca7444a0fff05b2d425f5,
+    type: 3}
+  painSound: {fileID: 8300000, guid: 6807d31e5cf6675468e0e75d1dc43d73, type: 3}
+  explosionSound: {fileID: 8300000, guid: 423ab4ebab589ed4397e04f2f4dfbbbc, type: 3}
+  painSoundVolume: 0.845
+  explosionSoundVolume: 1

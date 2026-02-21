@@ -121,8 +121,11 @@ public class PlayerHealth : Health
 
     public void TakeDamageFromTrap(float damage)
     {
+        Debug.Log($"ЛОВУШКА: наносим урон {damage}. Текущее здоровье: {currentHealth}");
+
         // Вызываем существующий метод TakeDamage из родительского класса
         TakeDamage(damage, Vector3.zero);
-        Debug.Log($"Player took {damage} damage from trap. Health: {currentHealth}");
+
+        Debug.Log($"После урона здоровье: {currentHealth}");
     }
 }
