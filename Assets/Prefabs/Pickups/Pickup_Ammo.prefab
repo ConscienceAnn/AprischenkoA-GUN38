@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1638618597574759717}
   - component: {fileID: 1638618597574759716}
   - component: {fileID: 1638618597574759721}
+  - component: {fileID: 2394192319392650601}
   m_Layer: 8
   m_Name: Pickup_Ammo
   m_TagString: Ammo
@@ -28,13 +29,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1638618597574759715}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 35.14, y: 1.567, z: -169.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1240516931761730547}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1638618597574759719
 MeshFilter:
@@ -55,6 +57,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -93,9 +96,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1638618597574759715}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1638618597574759716
@@ -126,11 +137,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   clipAmount: 2
+--- !u!114 &2394192319392650601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638618597574759715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec2e851e2a26b049adbb78012dd8c95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupSound: {fileID: 8300000, guid: e65c80592455b4a449f029934d2ec3fd, type: 3}
+  soundVolume: 1
 --- !u!1001 &1638618597750117400
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 1638618597574759720}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 6f117f812c69f19409b5600ce7206121,
@@ -214,6 +240,9 @@ PrefabInstance:
       value: fbx_item_ammo_pickup
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6f117f812c69f19409b5600ce7206121, type: 3}
 --- !u!4 &1240516931761730547 stripped
 Transform:

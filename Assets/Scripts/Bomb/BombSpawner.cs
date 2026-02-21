@@ -12,6 +12,7 @@ public class BombSpawner : MonoBehaviour
     public GameObject bombPrefab;
     public int maxBombs = 5;
     public float spawnInterval = 3f;
+    public LayerMask bombLayer;
 
     [Header("Точная настройка")]
     public float heightOffset = 0.02f; // Отступ от пола (можно менять в инспекторе)
@@ -90,6 +91,7 @@ public class BombSpawner : MonoBehaviour
         Debug.Log($"СПАВНИМ БОМБУ в позиции {position}!");
 
         GameObject bomb = Instantiate(bombPrefab, position, Quaternion.Euler(90, Random.Range(0, 360), 0));
+        bomb.layer = LayerMask.NameToLayer("Bomb");
         currentBombs++;
 
         // Автоматически добавляем трекер если его нет

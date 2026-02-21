@@ -108,6 +108,7 @@ GameObject:
   - component: {fileID: 8490749860911160507}
   - component: {fileID: 8490749860911160511}
   - component: {fileID: 5970113873797435315}
+  - component: {fileID: -835455510597147074}
   m_Layer: 8
   m_Name: Pickup_Assault
   m_TagString: Weapon
@@ -232,6 +233,20 @@ MonoBehaviour:
   bounceSpeed: 8
   bounceAmplitude: 0.05
   rotationSpeed: 90
+--- !u!114 &-835455510597147074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8490749860911160484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec2e851e2a26b049adbb78012dd8c95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupSound: {fileID: 8300000, guid: e65c80592455b4a449f029934d2ec3fd, type: 3}
+  soundVolume: 1
 --- !u!1001 &3125168670861930750
 PrefabInstance:
   m_ObjectHideFlags: 0

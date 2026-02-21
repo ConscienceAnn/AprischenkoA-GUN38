@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class HealthPickup : MonoBehaviour
@@ -11,8 +9,11 @@ public class HealthPickup : MonoBehaviour
         Health health = other.GetComponent<Health>();
         if (health != null)
         {
-            // Ћечим, даже если здоровье не низкое, но не больше максимума
             health.Heal(amount);
+
+            // ≈ƒ»Ќ—“¬≈ЌЌјя ƒќЅј¬Ћ≈ЌЌјя —“–ќ ј
+            GetComponent<PickupSound>()?.PlayPickupSound();
+
             Destroy(gameObject);
         }
     }

@@ -20,7 +20,7 @@ public class PickupSpawner : MonoBehaviour
         public GameObject prefab;
         public int maxCount = 2;
         public int currentCount = 0;
-        public bool isMelee = false; 
+        public bool isMelee = false;
     }
 
     [Header("Префабы пикапов")]
@@ -30,26 +30,26 @@ public class PickupSpawner : MonoBehaviour
     [Header("Оружие")]
     public WeaponConfig[] weapons = new WeaponConfig[]
     {
-        // Обычное оружие (тег "Weapon")
         new WeaponConfig { name = "Пистолет", maxCount = 2, isMelee = false },
         new WeaponConfig { name = "Дробовик", maxCount = 2, isMelee = false },
         new WeaponConfig { name = "Винтовка", maxCount = 1, isMelee = false },
-
-        // Ближнее оружие (тег "MeleeWeapon")
         new WeaponConfig { name = "Нож", maxCount = 2, isMelee = true }
     };
 
     [Header("Границы мира")]
     public WorldBounds worldBounds;
 
-    [Header("Препятствия")]
-    public LayerMask obstacleLayers;
-    public float itemRadius = 0.8f;
+    [Header("Слои")]
+    public LayerMask groundLayer = 1; // Слой пола
+    public LayerMask buildingLayer; // ТОЛЬКО здания
+    public LayerMask obstacleLayer; // Другие препятствия (камни, ящики)
 
     [Header("Настройки")]
-    public float checkInterval = 2f;
+    public float checkInterval = 0.5f;
     public int maxAttempts = 100;
     public float spawnHeight = 2f;
+    public float itemRadius = 0.8f;
+    public float minDistanceBetweenItems = 2f;
 
     private List<GameObject> spawnedItems = new List<GameObject>();
 
@@ -61,12 +61,14 @@ public class PickupSpawner : MonoBehaviour
         if (worldBounds == null)
             worldBounds = FindObjectOfType<WorldBounds>();
 
-        // Автоматически добавляем слой Building
-        int buildingLayer = LayerMask.NameToLayer("Building");
-        if (buildingLayer != -1)
-            obstacleLayers |= (1 << buildingLayer);
-
         // Загружаем префабы
+        LoadPrefabs();
+
+        StartCoroutine(SpawnLoop());
+    }
+
+    void LoadPrefabs()
+    {
         if (healthPickup.prefab == null)
             healthPickup.prefab = Resources.Load<GameObject>("Pickups/HealthPickup");
         if (ammoPickup.prefab == null)
@@ -81,18 +83,13 @@ public class PickupSpawner : MonoBehaviour
 
                 if (weapons[i].prefab == null)
                     weapons[i].prefab = Resources.Load<GameObject>("Pickups/" + weapons[i].name);
-               
-                // Специальная проверка для ножа
+
                 if (weapons[i].isMelee && weapons[i].prefab == null)
                 {
                     weapons[i].prefab = Resources.Load<GameObject>("Pickups/MeleeWeapon");
-                    if (weapons[i].prefab == null)
-                        Debug.LogWarning($"Префаб для {weapons[i].name} не найден!");
                 }
             }
         }
-
-        StartCoroutine(SpawnLoop());
     }
 
     IEnumerator SpawnLoop()
@@ -125,17 +122,15 @@ public class PickupSpawner : MonoBehaviour
             {
                 GameObject newItem = Instantiate(config.prefab, spawnPos, Quaternion.identity);
 
-                // Назначаем тег и слой
                 if (config.name.Contains("Аптечка") || config.prefab.name.Contains("Health"))
                 {
                     newItem.tag = "Health";
-                    newItem.layer = LayerMask.NameToLayer("Pickup");
                 }
                 else
                 {
                     newItem.tag = "Ammo";
-                    newItem.layer = LayerMask.NameToLayer("Pickup");
                 }
+                newItem.layer = LayerMask.NameToLayer("Pickup");
 
                 TrackedPickup tracker = newItem.AddComponent<TrackedPickup>();
                 tracker.spawner = this;
@@ -144,12 +139,8 @@ public class PickupSpawner : MonoBehaviour
 
                 if (minimap != null)
                 {
-                    StaticMinimap.PickupType type;
-                    if (config.name.Contains("Аптечка") || config.prefab.name.Contains("Health"))
-                        type = StaticMinimap.PickupType.Health;
-                    else
-                        type = StaticMinimap.PickupType.Ammo;
-
+                    StaticMinimap.PickupType type = config.name.Contains("Аптечка") ?
+                        StaticMinimap.PickupType.Health : StaticMinimap.PickupType.Ammo;
                     minimap.RegisterPickup(newItem, type);
                 }
 
@@ -169,17 +160,7 @@ public class PickupSpawner : MonoBehaviour
             {
                 GameObject newItem = Instantiate(config.prefab, spawnPos, Quaternion.identity);
 
-                if (config.isMelee)
-                {
-                    newItem.tag = "MeleeWeapon"; // Для ближнего оружия
-                    Debug.Log($"Spawned MELEE weapon: {config.name} with tag: MeleeWeapon");
-                }
-                else
-                {
-                    newItem.tag = "Weapon"; // Для обычного оружия
-                    Debug.Log($"Spawned RANGED weapon: {config.name} with tag: Weapon");
-                }
-
+                newItem.tag = config.isMelee ? "MeleeWeapon" : "Weapon";
                 newItem.layer = LayerMask.NameToLayer("Pickup");
 
                 TrackedPickup tracker = newItem.AddComponent<TrackedPickup>();
@@ -193,7 +174,7 @@ public class PickupSpawner : MonoBehaviour
                 config.currentCount++;
                 spawnedItems.Add(newItem);
 
-                Debug.Log($"Spawned weapon {newItem.name} with tag: {newItem.tag}, layer: {LayerMask.LayerToName(newItem.layer)}");
+                Debug.Log($"Spawned weapon {newItem.name}");
                 return;
             }
         }
@@ -204,26 +185,44 @@ public class PickupSpawner : MonoBehaviour
         Vector3 spawnPos = worldBounds.RandomPosition();
         spawnPos.y = spawnHeight;
 
-        // Проверка на препятствия на высоте спавна
-        if (Physics.OverlapSphere(spawnPos, itemRadius, obstacleLayers).Length > 0)
-            return Vector3.zero;
-
-        // Проверка лучом сверху
-        RaycastHit hit;
-        if (Physics.Raycast(spawnPos + Vector3.up * 10f, Vector3.down, out hit, 20f, obstacleLayers))
-            return Vector3.zero;
-
-        // Проверка пола
-        if (!Physics.Raycast(spawnPos, Vector3.down, out hit, 5f, LayerMask.GetMask("Default")))
-            return Vector3.zero;
-
-        // Проверка на другие пикапы
-        foreach (var item in spawnedItems)
+        // 1. Проверка пола (ОБЯЗАТЕЛЬНО)
+        RaycastHit groundHit;
+        if (!Physics.Raycast(spawnPos, Vector3.down, out groundHit, 5f, groundLayer))
         {
-            if (item != null && Vector3.Distance(spawnPos, item.transform.position) < itemRadius * 2)
-                return Vector3.zero;
+            Debug.Log($"Нет пола в {spawnPos}");
+            return Vector3.zero;
         }
 
+        // 2. Проверка зданий (ТОЛЬКО здания)
+        if (buildingLayer != 0 && Physics.CheckSphere(spawnPos, itemRadius, buildingLayer))
+        {
+            Debug.Log($"Мешает здание в {spawnPos}");
+            return Vector3.zero;
+        }
+
+        // 3. Проверка других препятствий (камни, ящики)
+        if (obstacleLayer != 0 && Physics.CheckSphere(spawnPos, itemRadius, obstacleLayer))
+        {
+            Debug.Log($"Мешает препятствие в {spawnPos}");
+            return Vector3.zero;
+        }
+
+        // 4. Проверка расстояния до других пикапов
+        foreach (var item in spawnedItems)
+        {
+            if (item != null)
+            {
+                float dist = Vector3.Distance(spawnPos, item.transform.position);
+                if (dist < minDistanceBetweenItems)
+                {
+                    Debug.Log($"Слишком близко к пикапу {item.name}: {dist}");
+                    return Vector3.zero;
+                }
+            }
+        }
+
+        // ВСЁ ХОРОШО - МОЖНО СПАВНИТЬ
+        Debug.Log($"Найдено место: {spawnPos}");
         return spawnPos;
     }
 
@@ -256,27 +255,6 @@ public class PickupSpawner : MonoBehaviour
             Vector3 center = (worldBounds.min.position + worldBounds.max.position) / 2;
             Vector3 size = worldBounds.max.position - worldBounds.min.position;
             Gizmos.DrawWireCube(center, size);
-        }
-    }
-}
-
-public class TrackedPickup : MonoBehaviour
-{
-    [HideInInspector] public PickupSpawner spawner;
-    [HideInInspector] public PickupSpawner.PickupConfig pickupConfig;
-    [HideInInspector] public PickupSpawner.WeaponConfig weaponConfig;
-
-    void OnDestroy()
-    {
-        if (spawner != null)
-        {
-            if (spawner.minimap != null)
-                spawner.minimap.UnregisterPickup(gameObject);
-
-            if (pickupConfig != null)
-                spawner.OnPickupCollected(pickupConfig);
-            if (weaponConfig != null)
-                spawner.OnWeaponCollected(weaponConfig);
         }
     }
 }

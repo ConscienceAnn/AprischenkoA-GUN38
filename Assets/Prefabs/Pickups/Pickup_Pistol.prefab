@@ -108,6 +108,7 @@ GameObject:
   - component: {fileID: 7199800650197264866}
   - component: {fileID: 7199800650197264865}
   - component: {fileID: 1562230966913767615}
+  - component: {fileID: 191285455754984554}
   m_Layer: 8
   m_Name: Pickup_Pistol
   m_TagString: Weapon
@@ -232,6 +233,20 @@ MonoBehaviour:
   bounceSpeed: 8
   bounceAmplitude: 0.05
   rotationSpeed: 90
+--- !u!114 &191285455754984554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7199800650197264864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec2e851e2a26b049adbb78012dd8c95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupSound: {fileID: 8300000, guid: e65c80592455b4a449f029934d2ec3fd, type: 3}
+  soundVolume: 1
 --- !u!1001 &1107456903709471718
 PrefabInstance:
   m_ObjectHideFlags: 0
