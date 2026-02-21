@@ -3,9 +3,9 @@ using System.Collections;
 
 public class AttachMeleeWeapon : MonoBehaviour
 {
-    public string socketName = "RightHandSocket"; // Имя слота в иерархии
-    public Vector3 positionOffset = Vector3.zero;  // Смещение позиции
-    public Vector3 rotationOffset = Vector3.zero;  // Смещение поворота
+    public string socketName = "RightHandSocket";
+    public Vector3 positionOffset = new Vector3(100f, 0, 0.1f);  // Смещение позиции
+    public Vector3 rotationOffset = new Vector3(0, 90, 0);    // Смещение поворота
 
     private GameObject currentWeapon;
     private Transform handSocket;
@@ -17,59 +17,47 @@ public class AttachMeleeWeapon : MonoBehaviour
         FindHandSocket();
     }
 
-    // Метод для подбора оружия - вызывается из пикапа
     public void PickupWeapon(GameObject weaponPrefab)
     {
-        // Если уже есть оружие, удаляем его
         if (currentWeapon != null)
         {
             Destroy(currentWeapon);
-            currentWeapon = null;
         }
-
-        // Запускаем корутину для прикрепления
         StartCoroutine(AttachWeapon(weaponPrefab));
     }
 
     IEnumerator AttachWeapon(GameObject weaponPrefab)
     {
-        // Ждем кадр чтобы все инициализировалось
         yield return null;
 
-        // Если слот еще не найден, пробуем найти снова
         if (handSocket == null)
         {
             FindHandSocket();
         }
 
-        // Пробуем прикрепить к слоту
         if (handSocket != null)
         {
-            // Создаем оружие
             currentWeapon = Instantiate(weaponPrefab);
             currentWeapon.name = "MeleeWeapon";
 
-
-
-
-
             // Прикрепляем к слоту
             currentWeapon.transform.SetParent(handSocket, false);
+
+            // Применяем смещения
             currentWeapon.transform.localPosition = positionOffset;
             currentWeapon.transform.localRotation = Quaternion.Euler(rotationOffset);
-            Debug.Log($"{gameObject.name}: Attached melee weapon to {handSocket.name} with offset P:{positionOffset} R:{rotationOffset}");
 
+            Debug.Log($"{gameObject.name}: Attached melee weapon to {handSocket.name} with offset P:{positionOffset} R:{rotationOffset}");
         }
         else
         {
-            Debug.LogError($"{gameObject.name}: Could not find hand socket! Trying MeshSockets...");
-
+            Debug.LogError($"{gameObject.name}: Could not find hand socket!");
         }
     }
 
     void FindHandSocket()
     {
-        // Ищем в MeshSockets (ваша иерархия)
+        // Ищем в MeshSockets
         Transform meshSocketsTransform = transform.Find("MeshSockets");
         if (meshSocketsTransform != null)
         {
@@ -81,7 +69,7 @@ public class AttachMeleeWeapon : MonoBehaviour
             }
         }
 
-        // Ищем в Armature (socketRightHand)
+        // Ищем в Armature
         Transform armature = transform.Find("Armature");
         if (armature != null)
         {
@@ -92,41 +80,16 @@ public class AttachMeleeWeapon : MonoBehaviour
                 return;
             }
         }
-
-        // Ищем по имени во всей иерархии
-        handSocket = FindDeepChild(transform, socketName);
-        if (handSocket != null)
-        {
-            Debug.Log($"Found socket by name: {socketName}");
-            return;
-        }
-
-        Debug.LogWarning($"{gameObject.name}: No hand socket found with name {socketName}");
     }
 
     Transform FindDeepChild(Transform parent, string name)
     {
         foreach (Transform child in parent)
         {
-            if (child.name == name)
-                return child;
-
+            if (child.name == name) return child;
             Transform result = FindDeepChild(child, name);
-            if (result != null)
-                return result;
+            if (result != null) return result;
         }
         return null;
-    }
-
-    // Метод для проверки наличия оружия
-    public bool HasWeapon()
-    {
-        return currentWeapon != null;
-    }
-
-    // Метод для получения текущего оружия
-    public GameObject GetCurrentWeapon()
-    {
-        return currentWeapon;
     }
 }

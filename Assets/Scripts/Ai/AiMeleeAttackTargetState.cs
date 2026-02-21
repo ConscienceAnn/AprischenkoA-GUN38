@@ -14,7 +14,7 @@ public class AiMeleeAttackTargetState : AiState
         Debug.Log($"{agent.name}: Entered MeleeAttackTarget State");
 
         // Настраиваем NavMesh для ближнего боя
-        agent.navMeshAgent.stoppingDistance = 1.5f; // Подходим ближе
+        agent.navMeshAgent.stoppingDistance = 1.1f; // Подходим ближе
         agent.navMeshAgent.speed = agent.config.attackSpeed;
     }
 

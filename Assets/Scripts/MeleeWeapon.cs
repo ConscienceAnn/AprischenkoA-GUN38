@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class MeleeWeapon : MonoBehaviour
 {
@@ -10,39 +11,43 @@ public class MeleeWeapon : MonoBehaviour
 
     private float nextAttackTime = 0f;
     private AiAgent aiAgent;
+    private GameObject owner; // Кто владеет оружием
+
+    // Для защиты от множественных попаданий
+    private List<Health> alreadyHit = new List<Health>();
 
     void Start()
     {
         aiAgent = GetComponentInParent<AiAgent>();
+        owner = GetComponentInParent<AiAgent>()?.gameObject; // Владелец оружия
+
+        if (owner == null)
+        {
+            owner = transform.root.gameObject; // Запасной вариант
+        }
     }
 
     public void Attack()
     {
         if (Time.time < nextAttackTime) return;
 
+        alreadyHit.Clear();
+
         Collider[] hits = Physics.OverlapSphere(attackPoint.position, attackRange, targetLayer);
+        Debug.Log($"{gameObject.name}: Found {hits.Length} hits");
 
         foreach (var hit in hits)
         {
-            // Пытаемся получить компонент Health (игрок)
+            // Пропускаем по тегу "AI"
+            if (hit.CompareTag("Agent")) continue;
+
             var playerHealth = hit.GetComponent<Health>();
-            if (playerHealth != null)
+            if (playerHealth != null && !alreadyHit.Contains(playerHealth))
             {
-                // Вычисляем направление от оружия к цели
                 Vector3 direction = (hit.transform.position - transform.position).normalized;
                 playerHealth.TakeDamage(damage, direction);
-                Debug.Log($"Попадание по игроку! Урон: {damage}, Направление: {direction}");
-
-                // Добавить эффект попадания (можно потом)
-                // Instantiate(hitEffect, hit.transform.position, Quaternion.identity);
-            }
-
-            // Если у врагов тоже есть здоровье (AiHealth)
-            var aiHealth = hit.GetComponent<AiHealth>();
-            if (aiHealth != null && aiHealth != GetComponentInParent<AiHealth>()) // Не нанести урон самому себе
-            {
-                Vector3 direction = (hit.transform.position - transform.position).normalized;
-                aiHealth.TakeDamage(damage, direction);
+                alreadyHit.Add(playerHealth);
+                Debug.Log($"{gameObject.name}: Hit player! Damage: {damage}");
             }
         }
 

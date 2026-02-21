@@ -5,15 +5,16 @@ using System.Linq;
 public class MeleeCombat : MonoBehaviour
 {
     [Header("Combat Settings")]
-    public float attackRange = 2f;
+    public float attackRange = 1f; // Уменьшил до 1
     public float attackCooldown = 1f;
-    public float detectionRange = 10f; // Дальность обнаружения
+    public float detectionRange = 15f;
     public Transform attackPoint;
     public LayerMask targetLayer;
 
     [Header("Targeting")]
     public bool prioritizeClosest = true;
     public bool requireLineOfSight = true;
+    public bool debugMode = true;
 
     private float nextAttackTime = 0f;
     private Animator animator;
@@ -22,193 +23,101 @@ public class MeleeCombat : MonoBehaviour
     private AiSensor sensor;
 
     private GameObject currentTarget;
-    private List<GameObject> targetsInRange = new List<GameObject>();
 
     void Start()
     {
         animator = GetComponent<Animator>();
         aiAgent = GetComponent<AiAgent>();
-        weapon = GetComponentInChildren<MeleeWeapon>();
         sensor = GetComponent<AiSensor>();
 
-        if (sensor == null)
+        // Не ищем оружие здесь - оно появится позже
+        if (attackPoint == null)
         {
-            Debug.LogWarning("AiSensor not found on " + gameObject.name);
+            Debug.LogWarning($"{gameObject.name}: AttackPoint not assigned");
         }
     }
 
     void Update()
     {
-        // Обновляем список целей
-        UpdateTargetList();
+        if (aiAgent == null || aiAgent.targeting == null) return;
 
-        // Выбираем лучшую цель
-        SelectBestTarget();
-
-        // Атакуем если есть цель
-        if (currentTarget != null && Time.time >= nextAttackTime)
+        if (aiAgent.targeting.HasTarget)
         {
+            currentTarget = aiAgent.targeting.Target.gameObject;
+
             float distance = Vector3.Distance(transform.position, currentTarget.transform.position);
 
-            if (distance <= attackRange)
+            if (debugMode)
+            {
+                Debug.Log($"{gameObject.name}: Distance to target: {distance:F2}, AttackRange: {attackRange}, Can attack: {distance <= attackRange && Time.time >= nextAttackTime}");
+            }
+
+            if (distance <= attackRange && Time.time >= nextAttackTime)
             {
                 Attack();
             }
         }
-    }
-
-    void UpdateTargetList()
-    {
-        targetsInRange.Clear();
-
-        if (sensor == null) return;
-
-        // Используем сенсор для поиска всех объектов на слое Player
-        GameObject[] buffer = new GameObject[20];
-        int count = sensor.Filter(buffer, "Player", "Player");
-
-        for (int i = 0; i < count; i++)
-        {
-            GameObject target = buffer[i];
-            float distance = Vector3.Distance(transform.position, target.transform.position);
-
-            // Проверяем дистанцию
-            if (distance <= detectionRange)
-            {
-                // Проверяем прямую видимость (опционально)
-                if (requireLineOfSight)
-                {
-                    if (HasLineOfSight(target))
-                    {
-                        targetsInRange.Add(target);
-                    }
-                }
-                else
-                {
-                    targetsInRange.Add(target);
-                }
-            }
-        }
-    }
-
-    bool HasLineOfSight(GameObject target)
-    {
-        if (sensor != null)
-        {
-            // Используем встроенный метод сенсора
-            return sensor.IsInSight(target);
-        }
         else
-        {
-            // Простая проверка лучом
-            RaycastHit hit;
-            Vector3 direction = (target.transform.position - transform.position).normalized;
-            Vector3 origin = transform.position + Vector3.up * 1.5f; // На уровне глаз
-
-            if (Physics.Raycast(origin, direction, out hit, detectionRange))
-            {
-                return hit.transform == target.transform;
-            }
-            return false;
-        }
-    }
-
-    void SelectBestTarget()
-    {
-        if (targetsInRange.Count == 0)
         {
             currentTarget = null;
-            return;
-        }
-
-        if (prioritizeClosest)
-        {
-            // Выбираем ближайшего
-            currentTarget = targetsInRange
-                .OrderBy(t => Vector3.Distance(transform.position, t.transform.position))
-                .First();
-        }
-        else
-        {
-            // Просто берем первого
-            currentTarget = targetsInRange[0];
         }
     }
 
     void Attack()
     {
-        animator.SetTrigger("Attack");
-        nextAttackTime = Time.time + attackCooldown;
-
-        if (debugMode)
+        if (animator != null)
         {
-            Debug.Log($"{gameObject.name} attacks {currentTarget.name}");
+            Debug.Log($"{gameObject.name}: Setting Attack trigger");
+            animator.SetTrigger("Attack");
+            nextAttackTime = Time.time + attackCooldown;
+        }
+        else
+        {
+            Debug.LogError($"{gameObject.name}: Animator is NULL!");
         }
     }
 
+    // Вызывается из анимации
     public void DealDamage()
     {
+        Debug.Log($"{gameObject.name}: DealDamage CALLED!");
+
+        // ИЩЕМ ОРУЖИЕ КАЖДЫЙ РАЗ!
+        weapon = GetComponentInChildren<MeleeWeapon>();
+
         if (weapon != null && currentTarget != null)
         {
-            // Проверяем, все еще ли цель в радиусе
             float distance = Vector3.Distance(transform.position, currentTarget.transform.position);
+            Debug.Log($"{gameObject.name}: DealDamage - distance: {distance:F2}, attackRange: {attackRange}");
+
             if (distance <= attackRange)
             {
                 weapon.Attack();
-
-                if (debugMode)
-                {
-                    Debug.Log($"{gameObject.name} dealt damage to {currentTarget.name}");
-                }
+                Debug.Log($"{gameObject.name}: Dealt damage to {currentTarget.name}");
             }
+            else
+            {
+                Debug.Log($"{gameObject.name}: Target too far for damage");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"{gameObject.name}: DealDamage - weapon null: {weapon == null}, target null: {currentTarget == null}");
         }
     }
 
-    public bool debugMode = true;
-
     void OnDrawGizmosSelected()
     {
-        // Радиус атаки
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
-        // Радиус обнаружения
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
-        // Точка атаки
         if (attackPoint != null)
         {
             Gizmos.color = Color.magenta;
             Gizmos.DrawSphere(attackPoint.position, 0.1f);
-        }
-
-        // Текущая цель
-        if (Application.isPlaying && currentTarget != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, currentTarget.transform.position);
-
-            // Рисуем красную сферу вокруг цели если в радиусе атаки
-            float distance = Vector3.Distance(transform.position, currentTarget.transform.position);
-            if (distance <= attackRange)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(currentTarget.transform.position, 0.5f);
-            }
-        }
-
-        // Все потенциальные цели
-        if (Application.isPlaying && debugMode)
-        {
-            Gizmos.color = Color.cyan;
-            foreach (var target in targetsInRange)
-            {
-                if (target != null && target != currentTarget)
-                {
-                    Gizmos.DrawLine(transform.position, target.transform.position);
-                }
-            }
         }
     }
 }
