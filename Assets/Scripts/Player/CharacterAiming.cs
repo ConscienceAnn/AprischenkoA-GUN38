@@ -40,22 +40,41 @@ public class CharacterAiming : MonoBehaviour
 
     void RotateCamera(float deltaTime) {
 
-        // This is to prevent large mouse deltas on first frame when entering play mode
-        // from the editor.
-        if (frame++ > 5) {
-            // Update mouse axis
+        // Это для предотвращения резких скачков мыши при старте в редакторе.
+        if (frame++ > 5)
+        {
             xAxis.Update(deltaTime);
             yAxis.Update(deltaTime);
         }
-        
 
-        // Camera look up / down
+        // Поворачиваем точку, за которой следит камера, по вертикали (вверх/вниз)
         cameraRotation.x = yAxis.Value;
         cameraLookAt.localEulerAngles = cameraRotation;
 
-        // Rotate player left / right
-        var euler = transform.eulerAngles;
-        euler.y = xAxis.Value;
-        transform.eulerAngles = euler;
+        // --- ИЗМЕНЕНИЯ ЗДЕСЬ ---
+        // 1. Находим компонент AutoAim на этом же объекте (игроке).
+        AutoAim autoAim = GetComponent<AutoAim>();
+
+        // 2. Проверяем, активен ли авто-прицел.
+        bool isAutoAiming = autoAim != null && autoAim.IsAutoAimEnabled;
+
+        // Поворот персонажа влево/вправо
+        // Поворачиваем ТОЛЬКО если:
+        // - Не зажата клавиша F (старое условие) И
+        // - Не активен авто-прицел (НОВОЕ УСЛОВИЕ)
+        // Используем логическое ИЛИ (||), так как нам нужно поворачивать, если НЕ зажата F И НЕ активен авто-прицел.
+        // Проще проверить условие, когда мы НЕ должны поворачивать.
+        if (Input.GetKey(KeyCode.F) || isAutoAiming)
+        {
+            // Если зажата F ИЛИ активен авто-прицел, мы НЕ поворачиваем персонажа мышью.
+            // В случае авто-прицела, AutoAim сам повернет персонажа.
+        }
+        else
+        {
+            // Иначе (F не зажата и авто-прицел выключен) - поворачиваем как обычно.
+            var euler = transform.eulerAngles;
+            euler.y = xAxis.Value;
+            transform.eulerAngles = euler;
+        }
     }
 }

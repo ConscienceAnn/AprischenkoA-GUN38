@@ -2054,6 +2054,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2996458871422731004}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ed3896bbc377db34bad5d2973b03826b,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1164394966018138937}
     - targetCorrespondingSourceObject: {fileID: -2610704896538430656, guid: ed3896bbc377db34bad5d2973b03826b,
         type: 3}
       insertIndex: -1
@@ -3512,6 +3516,29 @@ MonoBehaviour:
   stepInterval: 0.5
   walkThreshold: 0.7
   runThreshold: 5
+--- !u!114 &1164394966018138937
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6830960514219420226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2293525e14c8dc498991a2dba949d0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toggleKey: 102
+  maxRange: 50
+  rotationSpeed: 360
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4097
+  playerTransform: {fileID: 6163073602849927416}
+  activeWeapon: {fileID: 0}
 --- !u!4 &7041201353589780872 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3727367404431238811, guid: ed3896bbc377db34bad5d2973b03826b,
