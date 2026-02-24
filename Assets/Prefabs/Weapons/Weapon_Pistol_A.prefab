@@ -74,6 +74,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 64693703393348288, guid: 100ca5490353e7d40bad99326b0571a6,
         type: 3}
+      propertyPath: m_Name
+      value: FX_MuzzleFlash__
+      objectReference: {fileID: 0}
+    - target: {fileID: 64693703393348288, guid: 100ca5490353e7d40bad99326b0571a6,
+        type: 3}
       propertyPath: m_Layer
       value: 8
       objectReference: {fileID: 0}
@@ -85,7 +90,7 @@ PrefabInstance:
     - target: {fileID: 2851429149919901344, guid: 100ca5490353e7d40bad99326b0571a6,
         type: 3}
       propertyPath: m_Name
-      value: FX_MuzzleFlash_Red
+      value: FX_MuzzleFlash__
       objectReference: {fileID: 0}
     - target: {fileID: 2851429149919901344, guid: 100ca5490353e7d40bad99326b0571a6,
         type: 3}
@@ -350,7 +355,7 @@ MonoBehaviour:
   shootVolume: 0.8
   animator: {fileID: 22100000, guid: 59bb25011bd5ad149abb5599a43b5aa7, type: 2}
   raycastOrigin: {fileID: 2259847242450023241}
-  recoil: {fileID: 1268018948592835032}
+  recoil: {fileID: 0}
   magazine: {fileID: 6891435997037979417}
 --- !u!114 &1268018948592835032
 MonoBehaviour:

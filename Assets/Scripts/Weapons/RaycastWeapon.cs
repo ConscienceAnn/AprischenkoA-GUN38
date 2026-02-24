@@ -223,9 +223,13 @@ public class RaycastWeapon : MonoBehaviour
         ammoCount--;
 
         // Эффект выстрела (дульное пламя)
-        foreach (var particle in muzzleFlash)
+        if (muzzleFlash != null)
         {
-            particle.Emit(1);
+            foreach (var particle in muzzleFlash)
+            {
+                if (particle != null)
+                    particle.Emit(1);
+            }
         }
 
         // ЗВУК ВЫСТРЕЛА - единственный звук
