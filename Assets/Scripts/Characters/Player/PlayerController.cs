@@ -66,6 +66,7 @@ namespace Netologia.Quest.Characters.Player
             if (Physics.Raycast(ray, out var hit, _maxCameraDistance, _hitcastMask, QueryTriggerInteraction.Ignore))
             {
                 _currentTarget = hit.transform;
+                Debug.Log($"[Update] Попадание в: {_currentTarget.name}");
                 position = _currentTarget.TryGetComponent<Character>(out var character)
                     ? character.CirclePosition
                     : hit.point;
@@ -74,8 +75,11 @@ namespace Netologia.Quest.Characters.Player
                 _mouseFocus.enabled = true;
             }
             else
+            {
+                Debug.Log("[Update] Луч НИ ВО ЧТО НЕ ПОПАЛ");
                 _mouseFocus.enabled = false;
 
+            }
             if (IsMove)
             {
                 var count = GetPath(_path);
@@ -98,7 +102,14 @@ namespace Netologia.Quest.Characters.Player
         
         private void OnMoveClick(InputAction.CallbackContext obj)
         {
+            Debug.Log($"[OnMoveClick] _currentTarget = {(_currentTarget != null ? _currentTarget.name : "NULL")}");
             if (_moveLock) return;
+
+            if (_currentTarget == null)
+            {
+                Debug.LogError("КЛИК ПРИ NULL!");  
+                return;
+            }
 
             var point = default(Vector3);
             _movePoint.enabled = true;
