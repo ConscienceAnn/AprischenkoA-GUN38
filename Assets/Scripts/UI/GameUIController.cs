@@ -19,11 +19,30 @@ namespace UI
         [SerializeField] private Button _menuButton;
         [SerializeField] private Button _nextLevelButton;
 
+        [Header("Victory Panel Buttons")]
+        [Tooltip("Кнопка Main Menu на панели победы")]
+        [SerializeField] private Button _victoryMenuButton;
+
+        [Header("Victory Stars")]
+        [Tooltip("Родительский объект-контейнер для звёзд на панели победы")]
+        [SerializeField] private Transform _starsContainer;
+
+        [Tooltip("Префаб UI-звезды (должен содержать компонент Image)")]
+        [SerializeField] private GameObject _starPrefab;
+
+        [Tooltip("Спрайт собранной (золотой) звезды")]
+        [SerializeField] private Sprite _starCollectedSprite;
+
+        [Tooltip("Спрайт пустой (серой) звезды")]
+        [SerializeField] private Sprite _starEmptySprite;
+
         [Header("Level Settings")]
         [SerializeField] private string _nextLevelName = "Level2";
 
         private int _starsCollected = 0;
         private int _totalStars = 0;
+
+        private Image[] _victoryStars;
 
         private void Awake()
         {
@@ -42,6 +61,9 @@ namespace UI
             if (_nextLevelButton != null)
                 _nextLevelButton.onClick.AddListener(OnNextLevelClicked);
 
+            if (_victoryMenuButton != null)
+                _victoryMenuButton.onClick.AddListener(OnMenuClicked);
+
             // Изначально панель победы скрыта
             if (_victoryPanel != null)
                 _victoryPanel.SetActive(false);
@@ -52,6 +74,8 @@ namespace UI
             _totalStars = FindObjectsOfType<Gameplay.StarObject>().Length;
 
             UpdateStarsUI();
+
+            CreateVictoryStars();
         }
 
         private void OnDestroy()
@@ -66,11 +90,63 @@ namespace UI
                 _menuButton.onClick.RemoveListener(OnMenuClicked);
             if (_nextLevelButton != null)
                 _nextLevelButton.onClick.RemoveListener(OnNextLevelClicked);
+            if (_victoryMenuButton != null)
+                _victoryMenuButton.onClick.RemoveListener(OnMenuClicked);
+        }
+
+        private void CreateVictoryStars()
+        {
+            if (_starsContainer == null || _starPrefab == null)
+            {
+                Debug.LogWarning("Stars container or prefab not assigned!");
+                return;
+            }
+
+            // Удаляем старые звёзды (если есть)
+            foreach (Transform child in _starsContainer)
+            {
+                Destroy(child.gameObject);
+            }
+
+            // Создаём новые звёзды по количеству totalStars
+            _victoryStars = new Image[_totalStars];
+            for (int i = 0; i < _totalStars; i++)
+            {
+                GameObject starGO = Instantiate(_starPrefab, _starsContainer);
+                _victoryStars[i] = starGO.GetComponent<Image>();
+
+                // По умолчанию — пустая звезда
+                if (_starEmptySprite != null)
+                    _victoryStars[i].sprite = _starEmptySprite;
+            }
+        }
+
+        private void UpdateVictoryStars()
+        {
+            if (_victoryStars == null) return;
+
+            for (int i = 0; i < _victoryStars.Length; i++)
+            {
+                if (i < _starsCollected)
+                {
+                    // Собранная звезда
+                    if (_starCollectedSprite != null)
+                        _victoryStars[i].sprite = _starCollectedSprite;
+                }
+                else
+                {
+                    // Пустая звезда
+                    if (_starEmptySprite != null)
+                        _victoryStars[i].sprite = _starEmptySprite;
+                }
+            }
         }
 
         public void OnMessage(LevelCompleted message)
         {
             Debug.Log("UI: Level Completed! Showing victory panel.");
+            UpdateVictoryStars();
+
             if (_victoryPanel != null)
                 _victoryPanel.SetActive(true);
             SetGameplayButtonsActive(false);
@@ -127,5 +203,6 @@ namespace UI
             Debug.Log($"UI: Next level clicked -> {_nextLevelName}");
             SceneManager.LoadScene(_nextLevelName);
         }
+
     }
 }
