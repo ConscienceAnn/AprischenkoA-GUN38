@@ -125,6 +125,8 @@ namespace Gameplay
             }
 
             _fieldRoot.rotation = endRot;
+            CheckWinCondition();
+
             Messenger.Send(new SetInputActiveState { IsActive = true });
         }
 
@@ -183,39 +185,60 @@ namespace Gameplay
 
         private bool IsPointInMovingZone(MovePoint point)
         {
-            var currentZone = GetZoneAt(_mainObject.Position);
-            var targetZone = GetZoneAt(point.Position);
+            if (point == null) return false;
+
+            // Находим зону, в которой сейчас шарик (по его мировой позиции)
+            var currentZone = GetZoneAt(_mainObject.transform.position);
+
+            // Находим зону, в которой целевая точка (по её мировой позиции)
+            var targetZone = GetZoneAt(point.transform.position);
 
             if (currentZone == null || targetZone == null)
+            {
+                Debug.Log($"Move denied: currentZone={currentZone != null}, targetZone={targetZone != null}");
                 return false;
+            }
 
-            return currentZone == targetZone || targetZone.HasIntersection(currentZone);
+            // Можно двигаться, если это та же зона ИЛИ зоны пересекаются
+            bool canMove = (currentZone == targetZone) || currentZone.HasIntersection(targetZone);
+
+            if (!canMove)
+                Debug.Log($"Move denied: zones don't intersect");
+
+            return canMove;
         }
 
-        private MovingZone GetZoneAt(Vector2 position)
+        private MovingZone GetZoneAt(Vector2 worldPosition)
         {
             foreach (var zone in _movingZones)
             {
-                var point = FindMovePointAt(position);
-                if (point != null && zone.ContainsPoint(point))
+                if (zone != null && zone.ContainsPosition(worldPosition))
                     return zone;
             }
             return null;
         }
 
+
         private void CheckWinCondition()
         {
-            if (_mainObject.IsOnSamePosition(_targetObject))
+            if (_mainObject != null && _targetObject != null)
             {
-                Debug.Log("LEVEL COMPLETED!");
-                Messenger.Send(new LevelCompleted());
-                Messenger.Send(new SetInputActiveState { IsActive = false });
+                // Используем мировые координаты
+                if (_mainObject.IsOnSamePosition(_targetObject.transform.position))
+                {
+                    Debug.Log("LEVEL COMPLETED!");
+                    Messenger.Send(new LevelCompleted());
+                    Messenger.Send(new SetInputActiveState { IsActive = false });
+                }
             }
         }
 
         public void OnMessage(LevelRestarted message)
         {
             StopAllCoroutines();
+
+            _mainObject.DisableTrail();
+            _mainObject.ClearTrail();
 
             _mainObject.transform.position = _mainObjectStartPos;
             _fieldRoot.rotation = _fieldStartRotation;
@@ -226,8 +249,15 @@ namespace Gameplay
             }
 
             Messenger.Send(new SetInputActiveState { IsActive = true });
+
+            StartCoroutine(EnableTrailNextFrame());
         }
 
+        private System.Collections.IEnumerator EnableTrailNextFrame()
+        {
+            yield return null; 
+            _mainObject.EnableTrail();
+        }
 
         private void OnValidate()
         {

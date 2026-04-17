@@ -8,14 +8,12 @@ namespace Editor
     public class MovingZoneEditor : UnityEditor.Editor
     {
         private MovingZone _zone;
-        private SerializedProperty _coveredPointsProp;
-        private SerializedProperty _autoDetectPointsProp;
+        private SerializedProperty _spriteRendererProp;
 
         private void OnEnable()
         {
             _zone = (MovingZone)target;
-            _coveredPointsProp = serializedObject.FindProperty("_coveredPoints");
-            _autoDetectPointsProp = serializedObject.FindProperty("_autoDetectPoints");
+            _spriteRendererProp = serializedObject.FindProperty("_spriteRenderer");
         }
 
         public override void OnInspectorGUI()
@@ -25,74 +23,90 @@ namespace Editor
             EditorGUILayout.LabelField("Moving Zone Settings", EditorStyles.boldLabel);
             EditorGUILayout.Space(5);
 
-            // Автоопределение точек
-            EditorGUILayout.PropertyField(_autoDetectPointsProp, new GUIContent("Auto Detect Points"));
+            // Поле для SpriteRenderer
+            EditorGUILayout.PropertyField(_spriteRendererProp, new GUIContent("Sprite Renderer"));
 
             EditorGUILayout.Space(10);
 
-            // Кнопка ручного обновления
-            GUI.backgroundColor = Color.cyan;
-            if (GUILayout.Button("REFRESH COVERED POINTS", GUILayout.Height(25)))
+            // Информация о зоне
+            if (_zone != null && _zone.GetComponent<SpriteRenderer>() != null)
             {
-                _zone.AutoDetectPoints();
-                EditorUtility.SetDirty(_zone);
+                var bounds = _zone.GetComponent<SpriteRenderer>().bounds;
+                EditorGUILayout.LabelField("Zone Info", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Size: {bounds.size.x:F2} x {bounds.size.y:F2}");
+                EditorGUILayout.LabelField($"Center: {bounds.center}");
             }
-            GUI.backgroundColor = Color.white;
 
             EditorGUILayout.Space(10);
 
-            // Показываем список точек (только для чтения)
-            EditorGUILayout.LabelField($"Covered Points: {_zone.CoveredPoints.Count}", EditorStyles.boldLabel);
-
-            GUI.enabled = false;
-            EditorGUILayout.PropertyField(_coveredPointsProp, new GUIContent("Points List"), true);
-            GUI.enabled = true;
+            // Подсказка
+            EditorGUILayout.HelpBox(
+                "Точки определяются автоматически в реальном времени.\n" +
+                "Используйте ручки в Scene View для изменения размера зоны.",
+                MessageType.Info);
 
             serializedObject.ApplyModifiedProperties();
         }
 
         private void OnSceneGUI()
         {
-            // Визуальное редактирование размера зоны
             MovingZone zone = (MovingZone)target;
+            SpriteRenderer sr = zone.GetComponent<SpriteRenderer>();
 
-            // Ручки для изменения размера
+            if (sr == null) return;
+
             Vector3 center = zone.transform.position;
-            float size = HandleUtility.GetHandleSize(center) * 0.1f;
+            float handleSize = HandleUtility.GetHandleSize(center) * 0.1f;
 
-            // Правая ручка
-            Vector3 rightPos = center + Vector3.right * zone.GetComponent<SpriteRenderer>().bounds.extents.x;
+            // Правая ручка для изменения ширины
+            Vector3 rightPos = center + Vector3.right * sr.bounds.extents.x;
             EditorGUI.BeginChangeCheck();
-            Vector3 newRight = Handles.FreeMoveHandle(rightPos, size, Vector3.zero, Handles.RectangleHandleCap);
+            Vector3 newRight = Handles.FreeMoveHandle(
+                rightPos,
+                handleSize,
+                Vector3.zero,
+                Handles.RectangleHandleCap
+            );
+
             if (EditorGUI.EndChangeCheck())
             {
                 float newWidth = Mathf.Abs(newRight.x - center.x) * 2;
                 if (newWidth > 0.1f)
                 {
-                    var sr = zone.GetComponent<SpriteRenderer>();
+                    Undo.RecordObject(sr, "Resize MovingZone");
                     Vector2 newSize = sr.size;
                     newSize.x = newWidth;
                     sr.size = newSize;
-                    zone.AutoDetectPoints();
+                    EditorUtility.SetDirty(zone);
                 }
             }
 
-            // Верхняя ручка
-            Vector3 upPos = center + Vector3.up * zone.GetComponent<SpriteRenderer>().bounds.extents.y;
+            // Верхняя ручка для изменения высоты
+            Vector3 upPos = center + Vector3.up * sr.bounds.extents.y;
             EditorGUI.BeginChangeCheck();
-            Vector3 newUp = Handles.FreeMoveHandle(upPos, size, Vector3.zero, Handles.RectangleHandleCap);
+            Vector3 newUp = Handles.FreeMoveHandle(
+                upPos,
+                handleSize,
+                Vector3.zero,
+                Handles.RectangleHandleCap
+            );
+
             if (EditorGUI.EndChangeCheck())
             {
                 float newHeight = Mathf.Abs(newUp.y - center.y) * 2;
                 if (newHeight > 0.1f)
                 {
-                    var sr = zone.GetComponent<SpriteRenderer>();
+                    Undo.RecordObject(sr, "Resize MovingZone");
                     Vector2 newSize = sr.size;
                     newSize.y = newHeight;
                     sr.size = newSize;
-                    zone.AutoDetectPoints();
+                    EditorUtility.SetDirty(zone);
                 }
             }
+
+            // Рисуем границы зоны
+            Handles.color = new Color(0.5f, 0.5f, 0.5f, 0.3f);
+            Handles.DrawWireCube(sr.bounds.center, sr.bounds.size);
         }
     }
 }
