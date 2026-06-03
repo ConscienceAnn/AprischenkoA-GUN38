@@ -1,4 +1,3 @@
-using Messages;
 using Models;
 using Models.Interfaces;
 using TMPro;
@@ -14,56 +13,47 @@ namespace Presenters.Menu
         [SerializeField] private TMP_Text _heartCountText;
 
         private IBonusModel _bonusModel;
-        private IMessageBroker _messageBroker;
-        private int _savedStars;
-        private int _savedHearts;
 
-        private readonly CompositeDisposable _disposable = new();
-
-        // Внедрение через Zenject (вызывается даже на неактивных объектах!)
         [Inject]
-        private void Construct(IBonusModel bonusModel, IMessageBroker messageBroker)
+        private void Inject(IBonusModel bonusModel)
         {
             _bonusModel = bonusModel;
-            _messageBroker = messageBroker;
-
-            // Подписываемся на падение СРАЗУ
-            _messageBroker.Receive<MoveFailedMessage>()
-                .Subscribe(_ => OnGameOver())
-                .AddTo(_disposable);
-
-            Debug.Log("[BonusUIPresenter] Подписался на MoveFailedMessage в Construct");
         }
 
-        private void OnGameOver()
+        private void Start()
         {
-            Debug.Log("[BonusUIPresenter] OnGameOver ВЫЗВАН!");
+            // ПОДПИСКА НА OnAdded И OnRemove У РЕАКТИВНОЙ КОЛЛЕКЦИИ - ЭТО ТРЕБОВАНИЕ ЗАДАНИЯ!
+            _bonusModel.CollectedBonuses
+                .ObserveAdd()
+                .Subscribe(_ => UpdateUI())
+                .AddTo(this);
 
-            _savedStars = 0;
-            _savedHearts = 0;
+            _bonusModel.CollectedBonuses
+                .ObserveRemove()
+                .Subscribe(_ => UpdateUI())
+                .AddTo(this);
+
+            UpdateUI();
+
+            Debug.Log("[BonusUIPresenter] Подписан на изменения CollectedBonuses (OnAdded/OnRemoved)");
+        }
+
+        private void UpdateUI()
+        {
+            int starCount = 0;
+            int heartCount = 0;
 
             foreach (var bonus in _bonusModel.CollectedBonuses)
             {
-                if (bonus == BonusType.Star)
-                    _savedStars++;
-                else if (bonus == BonusType.Heart)
-                    _savedHearts++;
+                if (bonus == BonusType.Star) starCount++;
+                else if (bonus == BonusType.Heart) heartCount++;
             }
 
-            Debug.Log($"[BonusUIPresenter] Подсчитано: Stars={_savedStars}, Hearts={_savedHearts}");
-
             if (_starCountText != null)
-                _starCountText.text = _savedStars.ToString();
+                _starCountText.text = starCount.ToString();
 
             if (_heartCountText != null)
-                _heartCountText.text = _savedHearts.ToString();
-
-            Debug.Log($"[BonusUIPresenter] GameOver. Бонусы за игру: Звезды={_savedStars}, Сердца={_savedHearts}");
-        }
-
-        private void OnDestroy()
-        {
-            _disposable.Dispose();
+                _heartCountText.text = heartCount.ToString();
         }
     }
 }

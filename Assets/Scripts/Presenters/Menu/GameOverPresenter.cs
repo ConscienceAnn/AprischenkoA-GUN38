@@ -1,4 +1,5 @@
 ﻿using Messages;
+using Models;
 using Models.Interfaces;
 using TMPro;
 using UniRx;
@@ -21,12 +22,19 @@ namespace Presenters.Menu
         [SerializeField] private Button _restartButton;
         private IGameScoreModel _gameScoreModel;
         private IMessageBroker _messageBroker;
+        private IBonusModel _bonusModel;
+
+        [Header("Bonuses")]
+        [SerializeField] private TMP_Text _starCountText;
+        [SerializeField] private TMP_Text _heartCountText;
+
 
         [Inject]
-        private void Inject(IGameScoreModel gameScoreModel, IMessageBroker broker)
+        private void Inject(IGameScoreModel gameScoreModel, IMessageBroker broker, IBonusModel bonusModel)
         {
             _gameScoreModel = gameScoreModel;
             _messageBroker = broker;
+            _bonusModel = bonusModel;
             _returnToMainButton.OnClickAsObservable().Subscribe(ReturnToMainButtonClicked).AddTo(this);
             _restartButton.OnClickAsObservable().Subscribe(RestartButtonClicked).AddTo(this);
         }
@@ -43,6 +51,17 @@ namespace Presenters.Menu
 
         private void OnMoveFailed(MoveFailedMessage message)
         {
+            // Подсчет бонусов завершенной игры
+            int stars = 0, hearts = 0;
+            foreach (var bonus in _bonusModel.CollectedBonuses)
+            {
+                if (bonus == BonusType.Star) stars++;
+                else if (bonus == BonusType.Heart) hearts++;
+            }
+
+            if (_starCountText != null) _starCountText.text = stars.ToString();
+            if (_heartCountText != null) _heartCountText.text = hearts.ToString();
+
             gameObject.SetActive(true);
             _currentScore.text = _gameScoreModel.CurrentScore.ToString();
             _bestScore.text = _gameScoreModel.BestScore.ToString();
