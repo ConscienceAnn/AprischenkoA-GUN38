@@ -21,6 +21,9 @@ namespace Installers
             Container
                 .BindInterfacesAndSelfTo<GameScoreModel>()
                 .AsSingle();
+            Container
+                .BindInterfacesAndSelfTo<BonusModel>()
+                .AsSingle();
         }
     }
 }

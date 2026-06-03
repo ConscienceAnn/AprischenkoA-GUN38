@@ -3,6 +3,7 @@ using Core.Utils;
 using DG.Tweening;
 using Messages;
 using Messages.Input;
+using Models;
 using Models.Interfaces;
 using Presenters.Interfaces;
 using UniRx;
@@ -20,6 +21,7 @@ namespace Presenters
         private readonly IStickModel _stickModel;
         private readonly IGameScoreModel _gameScoreModel;
         private readonly IMessageBroker _messageBroker;
+        private IBonusModel _bonusModel;
         private readonly Vector2 _startPosition;
         private Vector2 _currentStickPosition;
         private int _gameIterations;
@@ -31,6 +33,7 @@ namespace Presenters
             IStickModel stickModel,
             IGameScoreModel gameScoreModel,
             IMessageBroker broker,
+            IBonusModel bonusModel,
             [Inject(Id = "Start")] Transform startPosition)
         {
             _buildingModel = buildingModel;
@@ -38,6 +41,7 @@ namespace Presenters
             _stickModel = stickModel;
             _gameScoreModel = gameScoreModel;
             _messageBroker = broker;
+            _bonusModel = bonusModel;
             _startPosition = startPosition.position;
         }
 
@@ -46,6 +50,8 @@ namespace Presenters
             Subscribe();
             InitializeObjectsAtStart();
             _gameScoreModel.ResetScore();
+            _bonusModel.ClearBonuses();  
+            Debug.Log("[GameLoopPresenter] Бонусы очищены при старте игры");
         }
 
         public void Dispose() => Unsubscribe();

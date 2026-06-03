@@ -11,7 +11,12 @@ namespace Installers
         [SerializeField] private GameObject _building;
         [SerializeField] private GameObject _player;
         [SerializeField] private GameObject _stick;
-        
+
+
+        [Header("Bonuses")]
+        [SerializeField] private GameObject _starBonus;
+        [SerializeField] private GameObject _heartBonus;
+
         public override void InstallBindings()
         {
             BindGameObjects();
@@ -24,6 +29,9 @@ namespace Installers
             Container.BindInstance(_building).WithId(Constants.BuildingIdentifier);
             Container.BindInstance(_player).WithId(Constants.PlayerIdentifier);
             Container.BindInstance(_stick).WithId(Constants.StickIdentifier);
+
+            Container.BindInstance(_starBonus).WithId("StarBonus");
+            Container.BindInstance(_heartBonus).WithId("HeartBonus");
         }
 
         private void BindModels()
@@ -40,6 +48,10 @@ namespace Installers
             Container.BindInterfacesAndSelfTo<InputPresenter>().AsSingle();
             Container.BindInterfacesAndSelfTo<StickBuildPresenter>().AsSingle();
             Container.BindInterfacesAndSelfTo<GameLoopPresenter>().AsSingle();
+
+            Container.BindInterfacesAndSelfTo<BonusGeneratorPresenter>().AsSingle();
+            Container.BindInterfacesAndSelfTo<BonusCollectorPresenter>().AsSingle();
+
         }
     }
 }
