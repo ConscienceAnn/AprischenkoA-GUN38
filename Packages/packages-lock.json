@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.leopotam.ecs": {
+      "version": "file:D:/Загрузки/ecs-master/ecs-master",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.collab-proxy": {
       "version": "2.9.3",
       "depth": 0,
