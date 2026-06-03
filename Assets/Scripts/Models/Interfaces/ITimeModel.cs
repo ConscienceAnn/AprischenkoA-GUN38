@@ -3,7 +3,7 @@ using Zenject;
 
 namespace Models.Interfaces
 {
-    public interface ITimeModel  :  IInitializable
+    public interface ITimeModel : IInitializable, IDisposable
     {
         IObservable<int> GameTime { get; }
     }
