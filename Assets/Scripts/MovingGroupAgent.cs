@@ -58,7 +58,7 @@ public sealed class MovingGroupAgent
         this.cache.Clear();
         this.cache.AddRange(this.movingAgents);
 
-        for (int i=0; count = this.cache.Count; i < count, i++)
+        for (int i = 0; i < this.cache.Count; i++)
         {
             var agent = this.cache[i];
             if (agent.IsCompleted)
@@ -119,7 +119,7 @@ public sealed class MovingGroupAgent
             return;
         }
 
-        if (HasCorrectedAgentNear(agent, otherAgents))
+        if (HasCorrectAgentNear(agent, otherAgents))
         {
             Debug.Log("Correct near Agent");
             agent.CorrectPath();

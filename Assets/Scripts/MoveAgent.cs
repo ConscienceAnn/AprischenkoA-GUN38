@@ -1,6 +1,5 @@
 using System.Collections;
 using System;
-using Esc;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -43,7 +42,7 @@ public class MoveAgent : MonoBehaviour
         get { return Time.time - this.correctPathTime >= correct_path_period; }
     }
 
-    public bool IsLastPoinr
+    public bool IsLastPoint
     {
         get { return this.pointer >= this.pointPath.Length - 1; }
     }
@@ -104,7 +103,17 @@ public class MoveAgent : MonoBehaviour
         this.StopMove(isCompleted: true);
     }
 
+    public struct MoveStateComponent
+    {
+        public bool moveRequired;
+        public Vector3 direction;
 
+        public MoveStateComponent(bool moveRequired, Vector3 direction)
+        {
+            this.moveRequired = moveRequired;
+            this.direction = direction;
+        }
+    }
     private void MoveByPath()
     {
         var currentPosition = this.transform.position;
@@ -118,17 +127,24 @@ public class MoveAgent : MonoBehaviour
             return;
         }
 
+        if (IsPathBlocked())
+        {
+            // ќстанавливаем движение
+            this.unit.SetData(new MoveStateComponent(false, Vector3.zero));
+            return;
+        }
+
         var direction = distanceVector.normalized;
         this.MoveUnit(direction);
     }
 
     private void MoveUnit(Vector3 direction)
     {
-        this.unit.SetData(new MoveStateComponent
-        (
-            moveRequired = true,
-            direction = direction
-            ));
+        Vector3 pos = transform.position;
+        pos.y = 0;
+        transform.position = pos;
+
+        this.unit.SetData(new MoveStateComponent(true, direction));
     }
 
     #endregion
@@ -250,10 +266,10 @@ public class MoveAgent : MonoBehaviour
             yield return new WaitForSeconds(0.35f);
 
             var currentPosition = this.transform.position;
-            var targetPosition = this.pointPath(this.pointer);
+            var targetPosition = this.pointPath[this.pointer];
             var direction = (targetPosition - currentPosition).normalized;
 
-            var ray = this.Ray(currentPosition, direction);
+            var ray = new Ray(currentPosition, direction); // заменила this.
             if (!Physics.Raycast(ray, out var hit, 0.35f, LayerMask.GetMask("Obstacle")))
             {
                 this.StopAvoidObstacle();
@@ -283,6 +299,16 @@ public class MoveAgent : MonoBehaviour
     private IEnumerator CompleteDelayed()
     {
         yield return new WaitForSeconds(complete_delay);
+
+        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
+
+        // ѕолна€ остановка перед финишем
+        this.unit.SetData(new MoveStateComponent(false, Vector3.zero));
+
+        Vector3 pos = transform.position;
+        pos.y = 0;
+        transform.position = pos;
+
         this.StopMove(isCompleted: true);
     }
 
@@ -313,7 +339,48 @@ public class MoveAgent : MonoBehaviour
             this.avoidObstacleCoroutine = null;
         }
 
+        this.unit.SetData(new MoveStateComponent(false, Vector3.zero));
+
+        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
+
+        // ѕринудительно ставим на землю
+        Vector3 pos = transform.position;
+        pos.y = 0;
+        transform.position = pos;
+
         this.isCompleted = isCompleted;
+    }
+
+    public void StopMoving()
+    {
+        StopMove(false);
+    }
+
+    public bool IsPathBlocked()
+    {
+        // ≈сли мы уже почти у цели - не блокируем
+        if (Vector3.Distance(transform.position, destination) <= 0.5f)
+            return false;
+
+        // ѕровер€ем, есть ли кто-то впереди на пути
+        RaycastHit hit;
+        Vector3 forward = (destination - transform.position).normalized;
+
+        if (Physics.Raycast(transform.position, forward, out hit, 1.5f)) // 1.5f - дистанци€ проверки
+        {
+            if (hit.collider.CompareTag("Unit"))
+            {
+                MoveAgent otherAgent = hit.collider.GetComponent<MoveAgent>();
+                // ≈сли тот, кто впереди, уже стоит или почти у цели
+                if (otherAgent != null && (otherAgent.IsCompleted ||
+                    Vector3.Distance(otherAgent.transform.position, otherAgent.destination) <= 0.5f))
+                {
+                    return true; // путь зан€т, надо остановитьс€
+                }
+            }
+        }
+
+        return false;
     }
 
     #endregion
