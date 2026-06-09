@@ -134,15 +134,13 @@ public class MoveAgent : MonoBehaviour
             return;
         }
 
-        var direction = distanceVector.normalized;
-        this.MoveUnit(direction);
+        var direction = distanceVector;
+        direction.y = 0;
+        this.MoveUnit(direction.normalized);
     }
 
     private void MoveUnit(Vector3 direction)
     {
-        Vector3 pos = transform.position;
-        pos.y = 0;
-        transform.position = pos;
 
         this.unit.SetData(new MoveStateComponent(true, direction));
     }
@@ -300,14 +298,8 @@ public class MoveAgent : MonoBehaviour
     {
         yield return new WaitForSeconds(complete_delay);
 
-        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
-
         // Полная остановка перед финишем
         this.unit.SetData(new MoveStateComponent(false, Vector3.zero));
-
-        Vector3 pos = transform.position;
-        pos.y = 0;
-        transform.position = pos;
 
         this.StopMove(isCompleted: true);
     }
@@ -340,13 +332,6 @@ public class MoveAgent : MonoBehaviour
         }
 
         this.unit.SetData(new MoveStateComponent(false, Vector3.zero));
-
-        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
-
-        // Принудительно ставим на землю
-        Vector3 pos = transform.position;
-        pos.y = 0;
-        transform.position = pos;
 
         this.isCompleted = isCompleted;
     }
