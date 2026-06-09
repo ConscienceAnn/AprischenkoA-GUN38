@@ -1,4 +1,5 @@
 using GameECS;
+using SampleProject.ResourceObject;
 using UnityEngine;
 
 namespace Game.GameEngine.Ecs
@@ -15,7 +16,9 @@ namespace Game.GameEngine.Ecs
             world.DeclareComponent<ResourceBag>();
             world.DeclareComponent<GatherTarget>();
             world.DeclareComponent<GatherState>();
-            
+            world.DeclareComponent<BaseStorageComponent>();
+            world.DeclareComponent<ResourceComponent>();
+
             world.DeclareSystem<GatherDurationSystem>();
             world.DeclareSystem<GatherResourceSystem>();
         }

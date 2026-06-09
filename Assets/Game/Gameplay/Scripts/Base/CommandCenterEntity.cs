@@ -16,20 +16,20 @@ namespace SampleProject.Base
             });
 
             // Хранилище ресурсов
-            this.SetData(new ResourceStorageComponent
+            this.SetData(new BaseStorageComponent
             {
-                gold = 0,
                 wood = 0,
-                minerals = 0
+                minerals = 0,
+                gold = 0
             });
         }
     }
 
-    public struct ResourceStorageComponent
-    {
-        public int gold;
-        public int wood;
-        public int minerals;
-    }
+    //public struct ResourceStorageComponent
+    //{
+    //    public int gold;
+    //    public int wood;
+    //    public int minerals;
+    //}
 
 }

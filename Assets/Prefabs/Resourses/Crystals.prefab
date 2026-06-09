@@ -14,12 +14,13 @@ GameObject:
   - component: {fileID: 5919212657872878760}
   - component: {fileID: 2065855648074160532}
   - component: {fileID: 4920450477984903422}
+  - component: {fileID: 3822919972103860751}
   m_Layer: 0
   m_Name: Crystals
-  m_TagString: Untagged
+  m_TagString: Resource
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &987750159580323380
 Transform:
@@ -29,7 +30,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6945139037073069664}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 12.29, y: 0, z: 7.28}
   m_LocalScale: {x: 6, y: 6, z: 6}
   m_ConstrainProportionsScale: 1
@@ -135,3 +136,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a02c1b3b64214fc29253b0e831e8fde8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!208 &3822919972103860751
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6945139037073069664}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.19600001, y: 0.231, z: 0.19600001}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -0.012, y: 0.2, z: 0.017}
+  m_TimeToStationary: 0.5

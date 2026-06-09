@@ -16,7 +16,7 @@ namespace SampleProject.ResourceObject
             this.SetData(new TransformComponent
             {
                 value = this.transform,
-                radius = 1.0f // Радиус взаимодействия
+                radius = 2.0f // Радиус взаимодействия
             });
 
             // Компонент ресурса (для Gather системы)
@@ -24,7 +24,7 @@ namespace SampleProject.ResourceObject
             {
                 resourceType = this.resourceType,
                 resourceAmount = this.resourceAmount,
-                currentAmount = this.resourceAmount
+                currentAmount = this.maxHitPoints
             });
 
             // HitPoints (чтобы ресурс можно было "уничтожить" или он не бесконечный)

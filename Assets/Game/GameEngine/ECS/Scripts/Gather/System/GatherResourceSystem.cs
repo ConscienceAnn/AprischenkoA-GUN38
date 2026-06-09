@@ -1,6 +1,7 @@
 using GameECS;
 using SampleProject.Base;
 using UnityEngine;
+using SampleProject.ResourceObject;
 
 namespace Game.GameEngine.Ecs
 {
@@ -44,6 +45,13 @@ namespace Game.GameEngine.Ecs
 
         private void UpdateMoveToResourceState(int entity)
         {
+            ref var resourceId = ref this.targetResourcePool.GetComponent(entity).targetId;
+            if (!this.world.IsEntityExists(resourceId))
+            {
+                this.StopGathering(entity);
+                return;
+            }
+
             if (!this.moveToPositionPool.HasComponent(entity))
             {
                 this.AddMoveToResourceData(entity);
@@ -70,15 +78,55 @@ namespace Game.GameEngine.Ecs
 
         private void UpdateGatheringState(int entity)
         {
+            ref var targetData = ref this.targetResourcePool.GetComponent(entity);
+            int resourceId = targetData.targetId;
+
+            if (!this.world.IsEntityExists(resourceId))
+            {
+                this.StopGathering(entity);
+                return;
+            }
+
+
             if (this.gatherDurationPool.HasComponent(entity))
             {
                 return;
             }
 
+    
+            // ПЫТАЕМСЯ ПОЛУЧИТЬ ResourceComponent напрямую
+            string resourceType = "Unknown";
+            int resourceAmount = 5;
+
+            // Проверяем, есть ли у ресурса компонент ResourceComponent
+            if (this.world.HasComponent<ResourceComponent>(resourceId))
+            {
+                ref var resource = ref this.world.GetComponent<ResourceComponent>(resourceId);
+                resourceType = resource.resourceType;
+                resourceAmount = resource.resourceAmount;
+
+                // УМЕНЬШАЕМ ЗАПАС РЕСУРСА
+                resource.currentAmount -= resourceAmount;
+
+                // ЕСЛИ РЕСУРС ИСЧЕРПАН - УНИЧТОЖАЕМ ЕГО
+                if (resource.currentAmount <= 0)
+                {
+                    // Отправляем событие уничтожения ресурса
+                    this.world.SendEvent<DestroyEvent>(resourceId, new DestroyEvent());
+                    Debug.Log($"Resource {resourceType} depleted!");
+                }
+
+
+            }
+            else
+            {
+                Debug.LogWarning($"Resource {resourceId} has no ResourceComponent, using defaults");
+            }
+
             this.resourceBagPool.SetComponent(entity, new ResourceBag
             {
-                resourceType = RESOURCE_TYPE,
-                resourceAmount = RESOURCE_AMOUNT
+                resourceType = resourceType,
+                resourceAmount = resourceAmount
             });
 
             //Transit to move base:
@@ -97,9 +145,25 @@ namespace Game.GameEngine.Ecs
             if (this.resourceBagPool.HasComponent(entity))
             {
                 var gatherData = this.resourceBagPool.GetComponent(entity);
+
+                // Найти базу
+                var commandCenter = GameObject.FindObjectOfType<CommandCenterEntity>();
+                if (commandCenter != null && commandCenter.HasData<BaseStorageComponent>())
+                {
+                    ref var storage = ref commandCenter.GetData<BaseStorageComponent>();
+
+                    // Добавить ресурс в зависимости от типа
+                    if (gatherData.resourceType == "Wood")
+                        storage.wood += gatherData.resourceAmount;
+                    else if (gatherData.resourceType == "Minerals")
+                        storage.minerals += gatherData.resourceAmount;
+                    else if (gatherData.resourceType == "Gold")
+                        storage.gold += gatherData.resourceAmount;
+
+                    Debug.Log($"Base: Wood={storage.wood}, Minerals={storage.minerals}, Gold={storage.gold}");
+                }
+
                 this.resourceBagPool.RemoveComponent(entity);
-                //TODO:
-                Debug.Log($"Put Resources to base: {gatherData.resourceType} {gatherData.resourceAmount}");
             }
 
             ref var resourceId = ref this.targetResourcePool.GetComponent(entity).targetId;
@@ -123,7 +187,22 @@ namespace Game.GameEngine.Ecs
         private void AddMoveToResourceData(int entity)
         {
             ref var resourceId = ref this.targetResourcePool.GetComponent(entity).targetId;
+
+            if (!this.world.IsEntityExists(resourceId))
+            {
+                this.StopGathering(entity);
+                return;
+            }
+
+            if (!this.transformPool.HasComponent(resourceId))
+            {
+                this.StopGathering(entity);
+                return;
+            }
+
             ref var resourceTransform = ref this.transformPool.GetComponent(resourceId);
+
+            float stopDistance = resourceTransform.radius + 0.5f;
 
             this.moveToPositionPool.SetComponent(entity, new MoveToPositionData
             {
@@ -134,6 +213,13 @@ namespace Game.GameEngine.Ecs
 
         private void SetGatheringState(int entity)
         {
+            ref var resourceId = ref this.targetResourcePool.GetComponent(entity).targetId;
+            if (!this.world.IsEntityExists(resourceId))
+            {
+                this.StopGathering(entity);
+                return;
+            }
+
             this.gatherStatePool.SetComponent(entity, GatherState.GATHERING);
 
             this.gatherDurationPool.SetComponent(entity, new GatherDuration

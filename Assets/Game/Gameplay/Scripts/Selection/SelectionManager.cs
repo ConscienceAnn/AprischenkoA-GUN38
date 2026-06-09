@@ -88,19 +88,20 @@ public class SelectionManager : MonoBehaviour
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                // Êëèê ïî âğàãó
                 Entity targetEntity = hit.collider.GetComponent<Entity>();
-                if (targetEntity != null && targetEntity.HasData<TeamComponent>() == false)
-                {
-                    CommandAttackTarget(targetEntity);
-                }
-                // Êëèê ïî ğåñóğñó
-                else if (targetEntity != null && targetEntity is ResourceEntity)
+
+                // ÑÍÀ×ÀËÀ ÏĞÎÂÅĞßÅÌ ÍÀ ĞÅÑÓĞÑ
+                if (targetEntity != null && targetEntity is ResourceEntity)
                 {
                     CommandGatherResource(targetEntity);
                 }
-                // Êëèê ïî çåìëå
-                else
+                // ÏÎÒÎÌ ÍÀ ÂĞÀÃÀ
+                else if (targetEntity != null && targetEntity.HasData<TeamComponent>() == false)
+                {
+                    CommandAttackTarget(targetEntity);
+                }
+                // ÏÎÒÎÌ ÍÀ ÇÅÌËŞ
+                else if (hit.transform.CompareTag("Ground"))
                 {
                     CommandMoveToPosition(hit.point);
                 }
