@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dafdee2358140319f261a2443129613, type: 3}
   m_Name: CharacterConfig
   m_EditorClassIdentifier: 
+  radius: 0
   hitPoints: 100
   moveSpeed: 5
   damage: 1
