@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Game.GameEngine.Ecs;
 using UnityEngine;
 
 public class UnitSpawner : MonoBehaviour
@@ -23,6 +24,23 @@ public class UnitSpawner : MonoBehaviour
             Vector3 spawnPosition = GetRandomSpawnPosition();
             GameObject unit = Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
             spawnedUnits.Add(unit);
+
+            // Логируем спавн
+            Entity entity = unit.GetComponent<Entity>();
+            if (entity != null)
+            {
+                Debug.Log($"[UnitSpawner] Spawned: {unit.name} (ID:{entity.Id}) from prefab: {unitPrefab.name}");
+
+                if (entity.HasData<TeamComponent>())
+                {
+                    ref var team = ref entity.GetData<TeamComponent>();
+                    Debug.Log($"[UnitSpawner] Team: {team.playerId} ({(team.playerId == 1 ? "PLAYER" : team.playerId == 2 ? "ENEMY" : "UNKNOWN")})");
+                }
+                else
+                {
+                    Debug.LogWarning($"[UnitSpawner]  No TeamComponent on spawned unit!");
+                }
+            }
         }
 
         Debug.Log($"Spawned {spawnedUnits.Count} units");

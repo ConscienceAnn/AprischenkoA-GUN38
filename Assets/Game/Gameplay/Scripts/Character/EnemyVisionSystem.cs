@@ -11,14 +11,37 @@ namespace Game.GameEngine.Ecs
         private EcsPool<TeamComponent> teamPool;
         private EcsPool<CommandRequest> commandPool;
         private EcsPool<HitPointsComponent> hpPool;
+        private EcsPool<AttackTarget> attackPool;
+        private EcsPool<GameObjectComponent> gameObjectPool;
+
+        private bool enableDebug = true;
+
+        private EcsWorld world;
+
+        private Dictionary<int, int> currentTargets = new Dictionary<int, int>();
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
+            // КРИТИЧЕСКАЯ ПРОВЕРКА: эта система только для врагов (Team = 2)
+            if (teamPool.HasComponent(entity))
+            {
+                ref var team = ref teamPool.GetComponent(entity);
+                if (team.playerId != 2)
+                {
+                    // Этот юнит не враг - пропускаем
+                    return;
+                }
+            }
+            else
+            {
+                // Нет TeamComponent - не враг
+                return;
+            }
+
             if (!visionPool.HasComponent(entity)) return;
 
             ref var vision = ref visionPool.GetComponent(entity);
 
-            // Инициализация интервала, если не задан
             if (vision.checkInterval <= 0)
             {
                 vision.checkInterval = 0.5f;
@@ -31,6 +54,8 @@ namespace Game.GameEngine.Ecs
                 vision.lastCheckTime = 0;
                 DetectNearestPlayer(entity, ref vision);
             }
+
+            CheckCurrentTarget(entity);
         }
 
         private void DetectNearestPlayer(int entity, ref VisionComponent vision)
@@ -40,10 +65,23 @@ namespace Game.GameEngine.Ecs
             ref var transform = ref transformPool.GetComponent(entity);
             Vector3 position = transform.value.position;
 
+            // Логируем информацию о себе
+            if (enableDebug && Time.frameCount % 60 == 0) // Раз в секунду
+            {
+                if (teamPool.HasComponent(entity))
+                {
+                    ref var myTeam = ref teamPool.GetComponent(entity);
+                    Debug.Log($"[EnemyVisionSystem] Enemy {entity} checking for players. My Team: {myTeam.playerId}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[EnemyVisionSystem] Enemy {entity} has NO TeamComponent!");
+                }
+            }
+
             int nearestPlayerId = -1;
             float nearestDistance = vision.radius;
 
-            // Получаем всех Entity на сцене
             var allEntities = GameObject.FindObjectsOfType<Entity>();
 
             foreach (var potentialTarget in allEntities)
@@ -51,25 +89,28 @@ namespace Game.GameEngine.Ecs
                 if (potentialTarget == null) continue;
 
                 int targetEntity = potentialTarget.Id;
-
-                // Пропускаем себя
                 if (targetEntity == entity) continue;
 
-                // Проверяем наличие TeamComponent
                 if (!teamPool.HasComponent(targetEntity)) continue;
-
                 ref var team = ref teamPool.GetComponent(targetEntity);
 
-                // Ищем игрока (команда 1) и проверяем что он не враг
-                if (team.playerId != 1) continue; // teamId 1 = игрок
+                // Игроки имеют playerId = 1
+                if (team.playerId != 1) continue;
 
-                // Проверяем жив ли
+                // Проверяем, активен ли GameObject игрока
+                if (gameObjectPool.HasComponent(targetEntity))
+                {
+                    ref var go = ref gameObjectPool.GetComponent(targetEntity);
+                    if (go.value == null || !go.value.activeInHierarchy)
+                    {
+                        continue;
+                    }
+                }
+
                 if (!hpPool.HasComponent(targetEntity)) continue;
-
                 ref var hp = ref hpPool.GetComponent(targetEntity);
                 if (hp.current <= 0) continue;
 
-                // Проверяем расстояние
                 if (transformPool.HasComponent(targetEntity))
                 {
                     ref var targetTransform = ref transformPool.GetComponent(targetEntity);
@@ -83,30 +124,122 @@ namespace Game.GameEngine.Ecs
                 }
             }
 
-            if (nearestPlayerId != -1)
+            bool hasTarget = (nearestPlayerId != -1);
+            int previousTarget = currentTargets.ContainsKey(entity) ? currentTargets[entity] : -1;
+
+            if (hasTarget)
             {
-                AttackPlayer(entity, nearestPlayerId, ref vision);
+                if (previousTarget != nearestPlayerId)
+                {
+                    // Логируем нахождение игрока
+                    Debug.Log($"[EnemyVisionSystem] Enemy {entity} found player {nearestPlayerId} at distance {nearestDistance:F2}");
+
+                    // Проверяем свою команду перед атакой
+                    if (teamPool.HasComponent(entity))
+                    {
+                        ref var myTeam = ref teamPool.GetComponent(entity);
+                        Debug.Log($"[EnemyVisionSystem] Enemy {entity} Team={myTeam.playerId} ? Attacking Player {nearestPlayerId} Team=1");
+
+                        if (myTeam.playerId == 1)
+                        {
+                            Debug.LogError($"[EnemyVisionSystem] CRITICAL: Enemy {entity} has Team=1 (PLAYER)! This is wrong!");
+                        }
+                    }
+
+                    currentTargets[entity] = nearestPlayerId;
+                    StartAttackingPlayer(entity, nearestPlayerId, ref vision);
+                }
             }
             else
             {
-                ReturnToPatrol(entity, ref vision);
+                if (previousTarget != -1)
+                {
+                    Debug.Log($"[EnemyVisionSystem] Enemy {entity} lost target");
+                    currentTargets[entity] = -1;
+                    StopAttacking(entity);
+                }
             }
         }
 
-        private void AttackPlayer(int entity, int playerId, ref VisionComponent vision)
+        private void CheckCurrentTarget(int entity)
         {
-            // Проверяем, не атакуем ли уже
-            if (commandPool.HasComponent(entity))
+            // Проверяем наличие команды
+            if (!commandPool.HasComponent(entity)) return;
+
+            ref var currentCommand = ref commandPool.GetComponent(entity);
+            if (currentCommand.type != CommandType.ATTACK_TARGET) return;
+
+            // Проверяем, что args существует и имеет правильный тип
+            if (currentCommand.args == null)
             {
-                ref var currentCommand = ref commandPool.GetComponent(entity);
-                if (currentCommand.type == CommandType.ATTACK_TARGET)
+                commandPool.RemoveComponent(entity);
+                return;
+            }
+
+            if (currentCommand.args is not Entity targetEntity)
+            {
+                commandPool.RemoveComponent(entity);
+                return;
+            }
+
+            // Проверяем, что targetEntity не уничтожен
+            if (targetEntity == null)
+            {
+                commandPool.RemoveComponent(entity);
+                currentTargets[entity] = -1;
+                StartPatrol(entity);
+                return;
+            }
+
+            int targetId = targetEntity.Id;
+
+            // Проверяем существование сущности в мире ECS
+            if (!world.IsEntityExists(targetId))
+            {
+                commandPool.RemoveComponent(entity);
+                currentTargets[entity] = -1;
+                StartPatrol(entity);
+                return;
+            }
+
+            bool targetIsAlive = false;
+
+            // Проверяем, жив ли игрок (HP > 0 И GameObject активен)
+            if (gameObjectPool.HasComponent(targetId))
+            {
+                ref var go = ref gameObjectPool.GetComponent(targetId);
+                if (go.value != null && go.value.activeInHierarchy)
                 {
-                    vision.detectedTargetId = playerId;
+                    if (hpPool.HasComponent(targetId))
+                    {
+                        ref var hp = ref hpPool.GetComponent(targetId);
+                        targetIsAlive = (hp.current > 0);
+                    }
+                }
+            }
+
+            if (!targetIsAlive)
+            {
+                Debug.Log($"Enemy {entity}: Target {targetId} is dead or inactive, stopping attack");
+                commandPool.RemoveComponent(entity);
+                currentTargets[entity] = -1;
+                StartPatrol(entity);
+            }
+        }
+
+        private void StartAttackingPlayer(int entity, int playerId, ref VisionComponent vision)
+        {
+            // Финальная проверка перед атакой
+            if (teamPool.HasComponent(entity))
+            {
+                ref var myTeam = ref teamPool.GetComponent(entity);
+                if (myTeam.playerId != 2)
+                {
+                    Debug.LogError($"[EnemyVisionSystem] BLOCKING ATTACK: Enemy {entity} has Team={myTeam.playerId}, not 2! Cannot attack player.");
                     return;
                 }
             }
 
-            // Находим Entity объект игрока
             var allEntities = GameObject.FindObjectsOfType<Entity>();
             Entity targetEntityObj = null;
 
@@ -121,13 +254,13 @@ namespace Game.GameEngine.Ecs
 
             if (targetEntityObj != null)
             {
-                // Убираем текущую команду
                 if (commandPool.HasComponent(entity))
                 {
                     commandPool.RemoveComponent(entity);
                 }
 
-                // Устанавливаем команду атаки
+                Debug.Log($"[EnemyVisionSystem] Enemy {entity} issuing ATTACK command on player {playerId}");
+
                 commandPool.SetComponent(entity, new CommandRequest
                 {
                     type = CommandType.ATTACK_TARGET,
@@ -136,33 +269,28 @@ namespace Game.GameEngine.Ecs
                 });
 
                 vision.detectedTargetId = playerId;
-                float distance = Vector3.Distance(transformPool.GetComponent(entity).value.position, targetEntityObj.transform.position);
-                Debug.Log($"Enemy {entity} detected player at distance {distance}! Attacking!");
             }
         }
 
-        private void ReturnToPatrol(int entity, ref VisionComponent vision)
+        private void StopAttacking(int entity)
         {
-            // Если враг атаковал и игрок пропал - возвращаемся к патрулированию
             if (commandPool.HasComponent(entity))
             {
-                ref var currentCommand = ref commandPool.GetComponent(entity);
-                if (currentCommand.type == CommandType.ATTACK_TARGET)
-                {
-                    commandPool.RemoveComponent(entity);
-                    Debug.Log($"Enemy {entity} lost player. Returning to patrol.");
-
-                    // Заново запускаем патрулирование
-                    StartPatrol(entity);
-                }
+                commandPool.RemoveComponent(entity);
+                Debug.Log($"Enemy {entity}: No valid players, stopping attack");
             }
 
-            vision.detectedTargetId = -1;
+            if (visionPool.HasComponent(entity))
+            {
+                ref var vision = ref visionPool.GetComponent(entity);
+                vision.detectedTargetId = -1;
+            }
+
+            StartPatrol(entity);
         }
 
         private void StartPatrol(int entity)
         {
-            // Получаем точки патрулирования
             var patrolPoints = GetPatrolPoints();
 
             if (patrolPoints.Count > 0)
@@ -173,22 +301,7 @@ namespace Game.GameEngine.Ecs
                     args = patrolPoints,
                     status = CommandStatus.IDLE
                 });
-                Debug.Log($"Enemy {entity} started patrol on {patrolPoints.Count} points");
-            }
-            else
-            {
-                // Создаём временные точки вокруг врага
-                var fallbackPoints = GetFallbackPatrolPoints(entity);
-                if (fallbackPoints.Count > 0)
-                {
-                    commandPool.SetComponent(entity, new CommandRequest
-                    {
-                        type = CommandType.PATROL_BY_POINTS,
-                        args = fallbackPoints,
-                        status = CommandStatus.IDLE
-                    });
-                    Debug.Log($"Enemy {entity} started fallback patrol");
-                }
+                Debug.Log($"Enemy {entity} returned to patrol");
             }
         }
 
@@ -201,26 +314,6 @@ namespace Game.GameEngine.Ecs
             {
                 if (point != null)
                     points.Add(point.transform.position);
-            }
-
-            return points;
-        }
-
-        private List<Vector3> GetFallbackPatrolPoints(int entity)
-        {
-            var points = new List<Vector3>();
-
-            if (transformPool.HasComponent(entity))
-            {
-                ref var transform = ref transformPool.GetComponent(entity);
-                Vector3 pos = transform.value.position;
-
-                // Квадратный маршрут вокруг текущей позиции
-                points.Add(pos + new Vector3(5, 0, 0));
-                points.Add(pos + new Vector3(0, 0, 5));
-                points.Add(pos + new Vector3(-5, 0, 0));
-                points.Add(pos + new Vector3(0, 0, -5));
-                points.Add(pos);
             }
 
             return points;

@@ -18,6 +18,19 @@ namespace Game.GameEngine.Ecs
 
             ref var request = ref this.hitRequestPool.GetComponent(entity);
 
+            if (!this.transformPool.HasComponent(request.targetId))
+            {
+                this.hitRequestPool.RemoveComponent(entity);
+                return;
+            }
+
+            ref var targetTransformComp = ref this.transformPool.GetComponent(request.targetId);
+            if (targetTransformComp.value == null)
+            {
+                this.hitRequestPool.RemoveComponent(entity);
+                return;
+            }
+
             ref var myTransform = ref this.transformPool.GetComponent(entity).value;
             ref var targetTransform = ref this.transformPool.GetComponent(request.targetId).value;
             var direction = (targetTransform.position - myTransform.position).normalized;

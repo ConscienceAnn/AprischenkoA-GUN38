@@ -1,5 +1,6 @@
 using Game.GameEngine.Ecs;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Entities
 {
@@ -16,28 +17,47 @@ namespace Entities
             // Добавляем компоненты, специфичные для врага
             this.SetData(new TeamComponent { playerId = 2 }); // Вражеская команда
 
+            // ПРОВЕРКА: убедимся, что TeamComponent установлен
+            if (this.HasData<TeamComponent>())
+            {
+                ref var team = ref this.GetData<TeamComponent>();
+                Debug.Log($"[EnemyUnit] {name} (ID:{this.Id}) initialized with Team={team.playerId} (ENEMY)");
+                if (team.playerId != 2)
+                {
+                    Debug.LogError($"[EnemyUnit] ERROR: {name} has Team={team.playerId} but should be 2!");
+                }
+            }
+            else
+            {
+                Debug.LogError($"[EnemyUnit] ERROR: {name} TeamComponent was NOT set!");
+            }
+
             // Добавляем компонент зрения для автоматического обнаружения игрока
             this.SetData(new VisionComponent
             {
                 radius = detectionRadius,
                 detectedTargetId = -1,
-                checkInterval = 0.5f
+                checkInterval = 0.5f,
+                lastCheckTime = 0f
             });
 
             // Враг автоматически начинает патрулирование при спавне
+            List<Vector3> patrolPoints = GetPatrolPoints();
+            Debug.Log($"[EnemyUnit] {name} starting patrol with {patrolPoints.Count} points");
+
             this.SetData(new CommandRequest
             {
                 type = CommandType.PATROL_BY_POINTS,
-                args = GetPatrolPoints(),
+                args = patrolPoints,
                 status = CommandStatus.IDLE
             });
         }
 
-        private object GetPatrolPoints()
+        private List<Vector3> GetPatrolPoints()
         {
             // Можно получить из глобального менеджера или найти по тегу
             var patrolPoints = GameObject.FindGameObjectsWithTag("PatrolPoint");
-            var points = new System.Collections.Generic.List<Vector3>();
+            var points = new List<Vector3>();
             foreach (var point in patrolPoints)
             {
                 points.Add(point.transform.position);

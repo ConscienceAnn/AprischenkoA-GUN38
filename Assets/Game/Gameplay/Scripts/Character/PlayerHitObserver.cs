@@ -7,10 +7,15 @@ namespace Game.GameEngine.Ecs
     {
         private EcsPool<HitPointsComponent> hpPool;
         private EcsPool<AnimatorComponent> animatorPool;
+        private EcsPool<GameObjectComponent> gameObjectPool;
 
         void IEcsObserver<HitEvent>.Handle(int entity, HitEvent hitEvent)
         {
-            if (!hpPool.HasComponent(entity)) return;
+            if (!hpPool.HasComponent(entity))
+            {
+                Debug.LogWarning($"Player {entity} has no HP component!");
+                return;
+            }
 
             ref var hp = ref hpPool.GetComponent(entity);
             hp.current -= hitEvent.damage;
@@ -27,14 +32,17 @@ namespace Game.GameEngine.Ecs
         {
             Debug.Log($"Player {entity} died!");
 
-            // Проигрываем анимацию смерти
-            if (animatorPool.HasComponent(entity))
+            // Отключаем GameObject
+            if (gameObjectPool.HasComponent(entity))
             {
-                ref var animator = ref animatorPool.GetComponent(entity);
-                animator.value.ChangeState(5); // DEATH state
+                ref var go = ref gameObjectPool.GetComponent(entity);
+                if (go.value != null)
+                {
+                    go.value.SetActive(false);
+                }
             }
 
-            // Отключаем управление игроком
+            // Удаляем компоненты
             var world = EcsModule.World;
             if (world.HasComponent<CommandRequest>(entity))
             {

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SampleProject
 {
     [RequireComponent(typeof(Entity))]
-    public sealed class CharacterBehaviour : EntityBehaviour
+    public sealed class PlayerBehaviour : EntityBehaviour
     {
         protected override IEnumerable<IEcsSystem> ProvideSystems()
         {
@@ -22,6 +22,9 @@ namespace SampleProject
 
             yield return new CharacterAnimatorSystem();
             yield return new CharacterRigidbodySystem();
+
+            // —истема автоматического обнаружени€ врагов
+            yield return new PlayerVisionSystem();
         }
 
         protected override IEnumerable<(Type, IEcsObserver)> ProvideObservers()

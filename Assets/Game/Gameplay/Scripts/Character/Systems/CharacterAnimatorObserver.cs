@@ -9,6 +9,7 @@ namespace Game.GameEngine.Ecs
 
         private EcsPool<HitRequest> requestPool;
         private EcsPool<CombatComponent> attackComponentPool;
+        private EcsPool<HitPointsComponent> hitPointsPool; 
         private EcsEmitter<HitEvent> hitEmitter;
 
         void IEcsObserver<AnimatorEvent>.Handle(int entity, AnimatorEvent @event)
@@ -22,25 +23,49 @@ namespace Game.GameEngine.Ecs
 
         private void Attack(int entity)
         {
-            if (this.requestPool == null)
-            {
-                Debug.LogError("RQ POOL NULL");
-            }
-            
-            if (!this.requestPool.HasComponent(entity))
+            if (!requestPool.HasComponent(entity))
             {
                 return;
             }
 
-            ref var request = ref this.requestPool.GetComponent(entity);
-            ref var component = ref this.attackComponentPool.GetComponent(entity);
+            ref var request = ref requestPool.GetComponent(entity);
+            int targetId = request.targetId;
 
-            this.hitEmitter.SendEvent(entity, new HitEvent
+            // Проверяем, существует ли цель в мире ECS
+            if (!EcsModule.World.IsEntityExists(targetId))
             {
-                targetId = request.targetId,
+                requestPool.RemoveComponent(entity);
+                return;
+            }
+
+            // Проверяем, есть ли у цели HitPoints компонент
+            if (!hitPointsPool.HasComponent(targetId))
+            {
+                requestPool.RemoveComponent(entity);
+                return;
+            }
+
+            // Проверяем, жива ли цель
+            ref var hp = ref hitPointsPool.GetComponent(targetId);
+            if (hp.current <= 0)
+            {
+                requestPool.RemoveComponent(entity);
+                return;
+            }
+
+            ref var component = ref attackComponentPool.GetComponent(entity);
+
+            Debug.Log($"Entity {entity} deals {component.damage} damage to target {targetId}");
+
+            hitEmitter.SendEvent(targetId, new HitEvent
+            {
+                targetId = targetId,
                 damage = component.damage,
                 damageType = component.damageType
             });
+
+            // Удаляем запрос после удара
+            requestPool.RemoveComponent(entity);
         }
     }
 }
