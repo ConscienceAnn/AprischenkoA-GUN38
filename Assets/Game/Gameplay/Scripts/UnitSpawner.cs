@@ -25,7 +25,7 @@ public class UnitSpawner : MonoBehaviour
             GameObject unit = Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
             spawnedUnits.Add(unit);
 
-            // Логируем спавн
+
             Entity entity = unit.GetComponent<Entity>();
             if (entity != null)
             {

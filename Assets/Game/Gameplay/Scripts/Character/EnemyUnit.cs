@@ -14,10 +14,8 @@ namespace Entities
 
         protected override void InitCharacter()
         {
-            // Добавляем компоненты, специфичные для врага
-            this.SetData(new TeamComponent { playerId = 2 }); // Вражеская команда
+            this.SetData(new TeamComponent { playerId = 2 }); 
 
-            // ПРОВЕРКА: убедимся, что TeamComponent установлен
             if (this.HasData<TeamComponent>())
             {
                 ref var team = ref this.GetData<TeamComponent>();
@@ -32,7 +30,6 @@ namespace Entities
                 Debug.LogError($"[EnemyUnit] ERROR: {name} TeamComponent was NOT set!");
             }
 
-            // Добавляем компонент зрения для автоматического обнаружения игрока
             this.SetData(new VisionComponent
             {
                 radius = detectionRadius,
@@ -41,7 +38,6 @@ namespace Entities
                 lastCheckTime = 0f
             });
 
-            // Враг автоматически начинает патрулирование при спавне
             List<Vector3> patrolPoints = GetPatrolPoints();
             Debug.Log($"[EnemyUnit] {name} starting patrol with {patrolPoints.Count} points");
 
@@ -55,7 +51,6 @@ namespace Entities
 
         private List<Vector3> GetPatrolPoints()
         {
-            // Можно получить из глобального менеджера или найти по тегу
             var patrolPoints = GameObject.FindGameObjectsWithTag("PatrolPoint");
             var points = new List<Vector3>();
             foreach (var point in patrolPoints)
@@ -67,17 +62,15 @@ namespace Entities
 
         protected override void Die()
         {
-            // Враг даёт опыт при смерти
             Debug.Log($"Enemy {name} died! Reward: {experienceReward} XP");
 
-            // Проигрываем анимацию смерти
+
             if (this.HasData<AnimatorComponent>())
             {
                 ref var animator = ref this.GetData<AnimatorComponent>();
-                animator.value.ChangeState(5); // DEATH state
+                animator.value.ChangeState(5); 
             }
 
-            // Уничтожаем объект через 2 секунды (чтобы анимация успела проиграться)
             Destroy(this.gameObject, 2f);
 
             base.Die();

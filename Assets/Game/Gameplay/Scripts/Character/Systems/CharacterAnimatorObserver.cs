@@ -31,21 +31,19 @@ namespace Game.GameEngine.Ecs
             ref var request = ref requestPool.GetComponent(entity);
             int targetId = request.targetId;
 
-            // Проверяем, существует ли цель в мире ECS
             if (!EcsModule.World.IsEntityExists(targetId))
             {
                 requestPool.RemoveComponent(entity);
                 return;
             }
 
-            // Проверяем, есть ли у цели HitPoints компонент
             if (!hitPointsPool.HasComponent(targetId))
             {
                 requestPool.RemoveComponent(entity);
                 return;
             }
 
-            // Проверяем, жива ли цель
+
             ref var hp = ref hitPointsPool.GetComponent(targetId);
             if (hp.current <= 0)
             {
@@ -64,7 +62,7 @@ namespace Game.GameEngine.Ecs
                 damageType = component.damageType
             });
 
-            // Удаляем запрос после удара
+
             requestPool.RemoveComponent(entity);
         }
     }

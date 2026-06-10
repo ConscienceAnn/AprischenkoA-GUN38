@@ -22,19 +22,17 @@ namespace Game.GameEngine.Ecs
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            // КРИТИЧЕСКАЯ ПРОВЕРКА: эта система только для врагов (Team = 2)
+            // только для врагов (Team = 2)
             if (teamPool.HasComponent(entity))
             {
                 ref var team = ref teamPool.GetComponent(entity);
                 if (team.playerId != 2)
                 {
-                    // Этот юнит не враг - пропускаем
                     return;
                 }
             }
             else
             {
-                // Нет TeamComponent - не враг
                 return;
             }
 
@@ -65,8 +63,7 @@ namespace Game.GameEngine.Ecs
             ref var transform = ref transformPool.GetComponent(entity);
             Vector3 position = transform.value.position;
 
-            // Логируем информацию о себе
-            if (enableDebug && Time.frameCount % 60 == 0) // Раз в секунду
+            if (enableDebug && Time.frameCount % 60 == 0) 
             {
                 if (teamPool.HasComponent(entity))
                 {
@@ -94,10 +91,8 @@ namespace Game.GameEngine.Ecs
                 if (!teamPool.HasComponent(targetEntity)) continue;
                 ref var team = ref teamPool.GetComponent(targetEntity);
 
-                // Игроки имеют playerId = 1
                 if (team.playerId != 1) continue;
 
-                // Проверяем, активен ли GameObject игрока
                 if (gameObjectPool.HasComponent(targetEntity))
                 {
                     ref var go = ref gameObjectPool.GetComponent(targetEntity);
@@ -131,10 +126,8 @@ namespace Game.GameEngine.Ecs
             {
                 if (previousTarget != nearestPlayerId)
                 {
-                    // Логируем нахождение игрока
                     Debug.Log($"[EnemyVisionSystem] Enemy {entity} found player {nearestPlayerId} at distance {nearestDistance:F2}");
 
-                    // Проверяем свою команду перед атакой
                     if (teamPool.HasComponent(entity))
                     {
                         ref var myTeam = ref teamPool.GetComponent(entity);
@@ -163,13 +156,11 @@ namespace Game.GameEngine.Ecs
 
         private void CheckCurrentTarget(int entity)
         {
-            // Проверяем наличие команды
             if (!commandPool.HasComponent(entity)) return;
 
             ref var currentCommand = ref commandPool.GetComponent(entity);
             if (currentCommand.type != CommandType.ATTACK_TARGET) return;
 
-            // Проверяем, что args существует и имеет правильный тип
             if (currentCommand.args == null)
             {
                 commandPool.RemoveComponent(entity);
@@ -182,7 +173,6 @@ namespace Game.GameEngine.Ecs
                 return;
             }
 
-            // Проверяем, что targetEntity не уничтожен
             if (targetEntity == null)
             {
                 commandPool.RemoveComponent(entity);
@@ -193,7 +183,6 @@ namespace Game.GameEngine.Ecs
 
             int targetId = targetEntity.Id;
 
-            // Проверяем существование сущности в мире ECS
             if (!world.IsEntityExists(targetId))
             {
                 commandPool.RemoveComponent(entity);
@@ -204,7 +193,6 @@ namespace Game.GameEngine.Ecs
 
             bool targetIsAlive = false;
 
-            // Проверяем, жив ли игрок (HP > 0 И GameObject активен)
             if (gameObjectPool.HasComponent(targetId))
             {
                 ref var go = ref gameObjectPool.GetComponent(targetId);
@@ -229,7 +217,6 @@ namespace Game.GameEngine.Ecs
 
         private void StartAttackingPlayer(int entity, int playerId, ref VisionComponent vision)
         {
-            // Финальная проверка перед атакой
             if (teamPool.HasComponent(entity))
             {
                 ref var myTeam = ref teamPool.GetComponent(entity);

@@ -4,7 +4,7 @@ using System.Text;
 
 public class TeamDebugger : MonoBehaviour
 {
-    [SerializeField] private bool logEveryFrame = false;
+   // [SerializeField] private bool logEveryFrame = false;
     [SerializeField] private KeyCode debugKey = KeyCode.F1;
 
     private void Update()

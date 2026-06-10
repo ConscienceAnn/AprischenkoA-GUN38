@@ -15,7 +15,7 @@ namespace Game.GameEngine.Ecs
         private EcsPool<TeamComponent> teamPool;
         private EcsPool<AttackTarget> attackPool;
 
-        // Кэш: кто уже атакует
+
         private HashSet<int> attackingEntities = new HashSet<int>();
 
         private EcsWorld world;
@@ -29,47 +29,52 @@ namespace Game.GameEngine.Ecs
 
             if (!transformPool.HasComponent(entity)) return;
 
-            // ===== КЛЮЧЕВОЕ УСЛОВИЕ =====
-            // Атакуем только если нет активной команды движения!
             if (HasActiveMoveCommand(entity))
             {
-                // Есть команда движения - убираем из кэша атаки
                 attackingEntities.Remove(entity);
                 return;
             }
-            // =============================
 
-            // Пропускаем, если юнит уже атакует
+
             if (attackingEntities.Contains(entity)) return;
 
-            // Проверяем, есть ли рядом враг
             int nearestEnemy = FindNearestEnemy(entity);
 
             if (nearestEnemy != -1)
             {
-                // Нашли врага - атакуем!
                 attackingEntities.Add(entity);
                 AttackEnemy(entity, nearestEnemy);
             }
             else
             {
-                // Нет врага - убираем из кэша
                 attackingEntities.Remove(entity);
             }
         }
 
-        // ===== ЭТОТ МЕТОД ДОБАВИТЬ СЮДА =====
-        // Проверка, есть ли активная команда движения
         private bool HasActiveMoveCommand(int entity)
         {
-            // Команда движения
+
             if (commandPool.HasComponent(entity))
             {
                 ref var cmd = ref commandPool.GetComponent(entity);
-                if (cmd.type == CommandType.MOVE_TO_POSITION ||
-                    cmd.type == CommandType.PATROL_BY_POINTS)
+
+                if (cmd.type == CommandType.MOVE_TO_POSITION)
                 {
-                    // Если команда завершена или провалена - не считается активной
+                    if (cmd.status == CommandStatus.COMPLETE || cmd.status == CommandStatus.FAIL)
+                    {
+                        return false;
+                    }
+                    return true;
+                }
+
+                if (cmd.type == CommandType.PATROL_BY_POINTS)
+                {
+
+                    if (IsEnemyNearby(entity))
+                    {
+                        return false;
+                    }
+
                     if (cmd.status == CommandStatus.COMPLETE || cmd.status == CommandStatus.FAIL)
                     {
                         return false;
@@ -78,11 +83,10 @@ namespace Game.GameEngine.Ecs
                 }
             }
 
-            // Движение к позиции
+
             if (moveToPositionPool.HasComponent(entity))
             {
                 ref var moveData = ref moveToPositionPool.GetComponent(entity);
-                // Если цель достигнута - не считается активным движением
                 if (moveData.isReached)
                 {
                     return false;
@@ -90,11 +94,10 @@ namespace Game.GameEngine.Ecs
                 return true;
             }
 
-            // Групповое движение
+
             if (groupMovePool.HasComponent(entity))
             {
                 ref var groupData = ref groupMovePool.GetComponent(entity);
-                // Если группа остановилась - не считается активным движением
                 if (groupData.hasStopped)
                 {
                     return false;
@@ -104,7 +107,50 @@ namespace Game.GameEngine.Ecs
 
             return false;
         }
-        // ===== КОНЕЦ ДОБАВЛЕННОГО МЕТОДА =====
+
+
+        private bool IsEnemyNearby(int entity)
+        {
+            if (!transformPool.HasComponent(entity)) return false;
+
+            ref var myTransform = ref transformPool.GetComponent(entity);
+            Vector3 myPos = myTransform.value.position;
+            float radius = 15f; 
+
+            var allEntities = GameObject.FindObjectsOfType<Entity>();
+
+            foreach (var potentialEnemy in allEntities)
+            {
+                if (potentialEnemy == null) continue;
+
+                int targetEntity = potentialEnemy.Id;
+                if (targetEntity == entity) continue;
+
+
+                if (!teamPool.HasComponent(targetEntity)) continue;
+                ref var targetTeam = ref teamPool.GetComponent(targetEntity);
+                if (targetTeam.playerId != 2) continue;
+
+
+                if (!hpPool.HasComponent(targetEntity)) continue;
+                ref var hp = ref hpPool.GetComponent(targetEntity);
+                if (hp.current <= 0) continue;
+
+
+                if (transformPool.HasComponent(targetEntity))
+                {
+                    ref var targetTransform = ref transformPool.GetComponent(targetEntity);
+                    float dist = Vector3.Distance(myPos, targetTransform.value.position);
+                    if (dist < radius)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
 
         private int FindNearestEnemy(int entity)
         {
@@ -124,17 +170,15 @@ namespace Game.GameEngine.Ecs
                 int targetEntity = potentialEnemy.Id;
                 if (targetEntity == entity) continue;
 
-                // Проверяем команду - ищем врагов (Team=2)
+
                 if (!teamPool.HasComponent(targetEntity)) continue;
                 ref var targetTeam = ref teamPool.GetComponent(targetEntity);
                 if (targetTeam.playerId != 2) continue;
 
-                // Проверяем, жив ли враг
                 if (!hpPool.HasComponent(targetEntity)) continue;
                 ref var hp = ref hpPool.GetComponent(targetEntity);
                 if (hp.current <= 0) continue;
 
-                // Проверяем дистанцию
                 if (transformPool.HasComponent(targetEntity))
                 {
                     ref var targetTransform = ref transformPool.GetComponent(targetEntity);
@@ -152,7 +196,7 @@ namespace Game.GameEngine.Ecs
 
         private void AttackEnemy(int entity, int enemyId)
         {
-            // Находим Entity цели
+
             Entity enemyEntity = null;
             var allEntities = GameObject.FindObjectsOfType<Entity>();
             foreach (var e in allEntities)
@@ -166,15 +210,13 @@ namespace Game.GameEngine.Ecs
 
             if (enemyEntity == null) return;
 
-            // Прерываем ТОЛЬКО команду, но НЕ движение?
-            // В RTS: если юнит атакует, он останавливается
+
             if (commandPool.HasComponent(entity))
             {
                 commandPool.RemoveComponent(entity);
             }
 
-            // НЕ удаляем moveToPositionPool - это позволит юниту
-            // после атаки запомнить, куда он шёл (опционально)
+
 
             commandPool.SetComponent(entity, new CommandRequest
             {

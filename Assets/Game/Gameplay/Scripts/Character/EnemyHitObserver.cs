@@ -30,28 +30,35 @@ namespace Game.GameEngine.Ecs
 
         private void Die(int entity)
         {
-            Debug.Log($"Enemy {entity} died!");
+            Debug.Log($"Entity {entity} died!");
 
             if (animatorPool.HasComponent(entity))
             {
                 ref var animator = ref animatorPool.GetComponent(entity);
-                animator.value.ChangeState(5); // DEATH state
-            }
+                if (animator.value != null)
+                {
+                    animator.value.ChangeState(5);
 
-            var world = EcsModule.World;
-            if (world.HasComponent<CommandRequest>(entity))
+                    if (gameObjectPool.HasComponent(entity))
+                    {
+                        ref var go = ref gameObjectPool.GetComponent(entity);
+                        if (go.value != null)
+                        {
+                            go.value.GetComponent<Entity>().StartCoroutine(DestroyAfterAnimation(go.value, animator.value));
+                        }
+                    }
+                }
+            }
+        }
+
+        private System.Collections.IEnumerator DestroyAfterAnimation(GameObject obj, AnimatorMachine animator)
+        {
+            yield return new WaitForSeconds(2f);
+
+            if (obj != null)
             {
-                world.RemoveComponent<CommandRequest>(entity);
+                GameObject.Destroy(obj);
             }
-
-            // ”ничтожаем через 2 секунды (дл€ анимации смерти)
-            if (gameObjectPool.HasComponent(entity))
-            {
-                ref var go = ref gameObjectPool.GetComponent(entity);
-                GameObject.Destroy(go.value, 2f);
-            }
-
-            world.SendEvent(entity, new DestroyEvent());
         }
     }
 }

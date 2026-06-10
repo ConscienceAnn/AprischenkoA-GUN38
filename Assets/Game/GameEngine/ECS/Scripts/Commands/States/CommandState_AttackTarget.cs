@@ -13,7 +13,7 @@ namespace Game.GameEngine.Ecs
         private EcsPool<TransformComponent> transformPool;
         private EcsPool<CombatComponent> combatPool;
         private EcsPool<TeamComponent> teamPool;
-        private EcsPool<GameObjectComponent> gameObjectPool; // ДОБАВИТЬ ЭТУ СТРОКУ
+        private EcsPool<GameObjectComponent> gameObjectPool; 
 
         private EcsWorld world;
 
@@ -80,7 +80,6 @@ namespace Game.GameEngine.Ecs
 
         public override void Update(int entity)
         {
-            // Проверяем существование текущей цели
             if (!IsTargetExists(entity))
             {
                 Debug.Log($"CommandState_AttackTarget: Current target died or doesn't exist");
@@ -100,7 +99,6 @@ namespace Game.GameEngine.Ecs
                 }
             }
 
-            // Получаем ID цели (ПЕРЕМЕСТИТЬ СЮДА, ДО ИСПОЛЬЗОВАНИЯ)
             if (!attackPool.HasComponent(entity))
             {
                 this.Complete(entity);
@@ -110,7 +108,6 @@ namespace Game.GameEngine.Ecs
             ref var attackData = ref this.attackPool.GetComponent(entity);
             int targetId = attackData.targetId;
 
-            // Проверяем GameObject цели (теперь targetId объявлен)
             if (gameObjectPool.HasComponent(targetId))
             {
                 ref var targetGo = ref gameObjectPool.GetComponent(targetId);
@@ -122,7 +119,6 @@ namespace Game.GameEngine.Ecs
                 }
             }
 
-            // Дополнительная проверка: не атакуем ли союзника
             if (teamPool.HasComponent(entity) && teamPool.HasComponent(targetId))
             {
                 ref var myTeam = ref teamPool.GetComponent(entity);
@@ -136,7 +132,6 @@ namespace Game.GameEngine.Ecs
                 }
             }
 
-            // Проверяем наличие компонентов для расчёта дистанции
             if (!transformPool.HasComponent(entity) || !transformPool.HasComponent(targetId))
             {
                 return;
@@ -154,7 +149,6 @@ namespace Game.GameEngine.Ecs
 
             float distance = Vector3.Distance(myTransform.value.position, targetTransform.value.position);
 
-            // Если на дистанции атаки - бьём
             if (distance <= combat.minDistance)
             {
                 if (!hitRequestPool.HasComponent(entity))

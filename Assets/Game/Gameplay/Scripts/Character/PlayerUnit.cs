@@ -10,10 +10,10 @@ namespace Entities
 
         protected override void InitCharacter()
         {
-            // Команда игрока
+
             this.SetData(new TeamComponent { playerId = 1 });
 
-            // ПРОВЕРКА
+
             if (this.HasData<TeamComponent>())
             {
                 ref var team = ref this.GetData<TeamComponent>();
@@ -28,7 +28,6 @@ namespace Entities
                 Debug.LogError($"[PlayerUnit] ERROR: {name} TeamComponent was NOT set!");
             }
 
-            // Зрение для обнаружения врагов
             this.SetData(new VisionComponent
             {
                 radius = detectionRadius,
