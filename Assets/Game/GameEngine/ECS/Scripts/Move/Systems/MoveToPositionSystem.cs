@@ -1,4 +1,5 @@
 using GameECS;
+using UnityEngine;
 
 namespace Game.GameEngine.Ecs
 {
@@ -10,23 +11,17 @@ namespace Game.GameEngine.Ecs
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
-            if (!this.moveToPositionPool.HasComponent(entity))
-            {
-                return;
-            }
+            if (!this.moveToPositionPool.HasComponent(entity)) return;
 
             ref var moveData = ref this.moveToPositionPool.GetComponent(entity);
             ref var transform = ref this.transformPool.GetComponent(entity);
 
-            var currentPosiiton = transform.value.position;
+            var currentPosition = transform.value.position;
             var targetPosition = moveData.destination;
-            var distanceVector = targetPosition - currentPosiiton;
+            var distanceVector = targetPosition - currentPosition;
 
             moveData.isReached = distanceVector.sqrMagnitude <= moveData.stoppingDistance;
-            if (moveData.isReached)
-            {
-                return;
-            }
+            if (moveData.isReached) return;
 
             this.moveStepPool.SetComponent(entity, new MoveStepData
             {

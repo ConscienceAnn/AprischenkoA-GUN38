@@ -14,37 +14,46 @@ namespace Game.GameEngine.Ecs
                 base.OnInspectorGUI();
                 return;
             }
-            
+
             var guiEnabled = GUI.enabled;
             GUI.enabled = true;
             DrawComponents();
             GUI.enabled = guiEnabled;
         }
 
-
         private void DrawComponents()
         {
             var entity = this.target as Entity;
+            if (entity == null) return;
+
             var components = entity.GetDataSet();
+            if (components == null) return;
 
             foreach (var component in components)
             {
+                if (component == null) continue;
+
                 GUILayout.BeginVertical(GUI.skin.box);
-                var type = component.GetType();
-                var typeName = type.Name;
-
-                EditorGUILayout.LabelField(typeName, EditorStyles.boldLabel);
-                var indent = EditorGUI.indentLevel;
-                EditorGUI.indentLevel++;
-                
-                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                try
                 {
-                    DrawTypeField(component, field, entity);
+                    var type = component.GetType();
+                    var typeName = type.Name;
+
+                    EditorGUILayout.LabelField(typeName, EditorStyles.boldLabel);
+                    var indent = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel++;
+
+                    foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        DrawTypeField(component, field, entity);
+                    }
+
+                    EditorGUI.indentLevel = indent;
                 }
-
-                EditorGUI.indentLevel = indent;
-
-                GUILayout.EndVertical();
+                finally
+                {
+                    GUILayout.EndVertical();
+                }
                 EditorGUILayout.Space();
             }
         }
@@ -53,16 +62,22 @@ namespace Game.GameEngine.Ecs
         {
             var fieldValue = field.GetValue(instance);
             var fieldType = field.FieldType;
-            
+
             if (fieldType == typeof(UnityEngine.Object) || fieldType.IsSubclassOf(typeof(UnityEngine.Object)))
             {
                 GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(field.Name, GUILayout.MaxWidth(EditorGUIUtility.labelWidth - 16));
-                var guiEnabled = GUI.enabled;
-                GUI.enabled = false;
-                EditorGUILayout.ObjectField(fieldValue as UnityEngine.Object, fieldType, false);
-                GUI.enabled = guiEnabled;
-                GUILayout.EndHorizontal();
+                try
+                {
+                    EditorGUILayout.LabelField(field.Name, GUILayout.MaxWidth(EditorGUIUtility.labelWidth - 16));
+                    var guiEnabled = GUI.enabled;
+                    GUI.enabled = false;
+                    EditorGUILayout.ObjectField(fieldValue as UnityEngine.Object, fieldType, false);
+                    GUI.enabled = guiEnabled;
+                }
+                finally
+                {
+                    GUILayout.EndHorizontal();
+                }
                 return;
             }
 
@@ -71,9 +86,15 @@ namespace Game.GameEngine.Ecs
                 : "null";
 
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(field.Name, GUILayout.MaxWidth(EditorGUIUtility.labelWidth - 16));
-            EditorGUILayout.SelectableLabel(strVal, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
-            GUILayout.EndHorizontal();
+            try
+            {
+                EditorGUILayout.LabelField(field.Name, GUILayout.MaxWidth(EditorGUIUtility.labelWidth - 16));
+                EditorGUILayout.SelectableLabel(strVal, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight));
+            }
+            finally
+            {
+                GUILayout.EndHorizontal();
+            }
         }
     }
 }
