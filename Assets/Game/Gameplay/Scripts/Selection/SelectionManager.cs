@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Linq;
 using Game.GameEngine.Ecs;
 using SampleProject.ResourceObject;
 using SampleProject.Base;
@@ -15,6 +16,11 @@ public class SelectionManager : MonoBehaviour
     private Vector2 mouseStartPosition;
     private bool isSelecting;
 
+    private Color selectedColor = Color.green;
+
+    // Словарь для хранения оригинальных цветов юнитов
+    private Dictionary<int, Color> originalColors = new Dictionary<int, Color>(); // Используем ID вместо ссылки
+
     private void Update()
     {
         HandleSelection();
@@ -23,6 +29,25 @@ public class SelectionManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.P) && selectedUnits.Count > 0)
         {
             CommandPatrol();
+        }
+
+        // Очищаем словарь от мёртвых ссылок (опционально)
+        CleanupDeadReferences();
+    }
+
+    private void CleanupDeadReferences()
+    {
+        // Проверяем и удаляем записи для уничтоженных юнитов
+        var deadKeys = originalColors.Keys.Where(id =>
+        {
+            // Проверяем, существует ли ещё Entity с таким ID
+            var entities = FindObjectsOfType<Entity>();
+            return !entities.Any(e => e.IsExists() && e.GetHashCode() == id);
+        }).ToList();
+
+        foreach (var key in deadKeys)
+        {
+            originalColors.Remove(key);
         }
     }
 
@@ -89,13 +114,24 @@ public class SelectionManager : MonoBehaviour
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, 100f))
         {
-            Entity entity = hit.collider.GetComponent<Entity>();
-            if (entity != null && !(entity is ResourceEntity) && !(entity is CommandCenterEntity))
+            if (hit.collider.CompareTag("Unit"))
+            {
+                Entity entity = hit.collider.GetComponent<Entity>();
+                if (entity != null && entity.IsExists())
+                {
+                    ClearSelection();
+                    AddToSelection(entity);
+                    Debug.Log($"Selected single unit: {entity.name}");
+                }
+            }
+            else
             {
                 ClearSelection();
-                AddToSelection(entity);
-                Debug.Log($"Selected single unit: {entity.name}");
             }
+        }
+        else
+        {
+            ClearSelection();
         }
     }
 
@@ -108,13 +144,15 @@ public class SelectionManager : MonoBehaviour
         float minY = Mathf.Min(mouseStartPosition.y, Input.mousePosition.y);
         float maxY = Mathf.Max(mouseStartPosition.y, Input.mousePosition.y);
 
-        Entity[] allEntities = FindObjectsOfType<Entity>();
+        GameObject[] allUnits = GameObject.FindGameObjectsWithTag("Unit");
         List<Entity> unitsInRect = new List<Entity>();
 
-        foreach (var entity in allEntities)
+        foreach (var unitObj in allUnits)
         {
-            if (entity is ResourceEntity) continue;
-            if (entity is CommandCenterEntity) continue;
+            if (unitObj == null) continue;
+
+            Entity entity = unitObj.GetComponent<Entity>();
+            if (entity == null || !entity.IsExists()) continue;
 
             Vector3 screenPos = mainCamera.WorldToScreenPoint(entity.transform.position);
 
@@ -151,6 +189,10 @@ public class SelectionManager : MonoBehaviour
                 {
                     CommandGatherResource(targetEntity);
                 }
+                else if (hit.collider.CompareTag("Enemy"))
+                {
+                    CommandAttackTarget(targetEntity);
+                }
                 else if (targetEntity != null && targetEntity.HasData<TeamComponent>() == false)
                 {
                     CommandAttackTarget(targetEntity);
@@ -165,25 +207,16 @@ public class SelectionManager : MonoBehaviour
 
     private void CommandMoveToPosition(Vector3 position)
     {
-        // Уникальный ID группы для этой команды
         int groupId = System.Guid.NewGuid().GetHashCode();
 
         for (int i = 0; i < selectedUnits.Count; i++)
         {
             var unit = selectedUnits[i];
-            if (unit.IsExists())
+            if (unit != null && unit.IsExists())
             {
-                // Первый юнит в выделении - лидер
                 bool isLeader = (i == 0);
+                float waitDistance = isLeader ? 0.5f : 1.0f + (i * 0.15f);
 
-                // Каскад остановки: каждый следующий останавливается чуть дальше
-                float waitDistance;
-                if (isLeader)
-                    waitDistance = 0.5f;
-                else
-                    waitDistance = 1.0f + (i * 0.15f);
-
-                // Устанавливаем групповые данные
                 unit.SetData(new GroupMoveData
                 {
                     destination = position,
@@ -193,7 +226,6 @@ public class SelectionManager : MonoBehaviour
                     hasStopped = false
                 });
 
-                // Устанавливаем команду движения
                 unit.SetData(new CommandRequest
                 {
                     type = CommandType.MOVE_TO_POSITION,
@@ -212,7 +244,7 @@ public class SelectionManager : MonoBehaviour
 
         foreach (var unit in selectedUnits)
         {
-            if (unit.IsExists())
+            if (unit != null && unit.IsExists())
             {
                 unit.SetData(new CommandRequest
                 {
@@ -230,7 +262,7 @@ public class SelectionManager : MonoBehaviour
 
         foreach (var unit in selectedUnits)
         {
-            if (unit.IsExists())
+            if (unit != null && unit.IsExists())
             {
                 unit.SetData(new CommandRequest
                 {
@@ -259,10 +291,9 @@ public class SelectionManager : MonoBehaviour
 
         Debug.Log($"Starting patrol for {selectedUnits.Count} units on {pointsPositions.Count} points");
 
-        // Отправляем команду патрулирования через ECS (без MoveAgent)
         foreach (var unit in selectedUnits)
         {
-            if (unit.IsExists())
+            if (unit != null && unit.IsExists())
             {
                 unit.SetData(new CommandRequest
                 {
@@ -273,14 +304,13 @@ public class SelectionManager : MonoBehaviour
             }
         }
 
-        // Дополнительно: для группового патрулирования можно добавить групповые данные
         if (pointsPositions.Count > 0)
         {
             int groupId = System.Guid.NewGuid().GetHashCode();
             for (int i = 0; i < selectedUnits.Count; i++)
             {
                 var unit = selectedUnits[i];
-                if (unit.IsExists())
+                if (unit != null && unit.IsExists())
                 {
                     bool isLeader = (i == 0);
                     float waitDistance = isLeader ? 0.5f : 1.0f + (i * 0.15f);
@@ -300,31 +330,64 @@ public class SelectionManager : MonoBehaviour
 
     private void AddToSelection(Entity entity)
     {
-        if (!selectedUnits.Contains(entity))
-        {
-            selectedUnits.Add(entity);
+        if (entity == null) return;
+        if (!entity.IsExists()) return;
+        if (selectedUnits.Contains(entity)) return;
 
-            var renderer = entity.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material.color = Color.green;
-            }
-        }
+        selectedUnits.Add(entity);
+        SetUnitColor(entity, selectedColor);
     }
 
     private void ClearSelection()
     {
         foreach (var unit in selectedUnits)
         {
-            if (unit != null)
+            if (unit != null && unit.IsExists())
             {
-                var renderer = unit.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.material.color = Color.white;
-                }
+                RestoreOriginalColor(unit);
             }
         }
         selectedUnits.Clear();
+    }
+
+    private void SetUnitColor(Entity entity, Color color)
+    {
+        var renderer = GetRenderer(entity);
+        if (renderer != null)
+        {
+            int entityId = entity.GetHashCode();
+
+            // Сохраняем оригинальный цвет, если ещё не сохранён
+            if (!originalColors.ContainsKey(entityId))
+            {
+                originalColors[entityId] = renderer.material.color;
+            }
+
+            renderer.material.color = color;
+        }
+    }
+
+    private void RestoreOriginalColor(Entity entity)
+    {
+        var renderer = GetRenderer(entity);
+        if (renderer != null)
+        {
+            int entityId = entity.GetHashCode();
+            if (originalColors.ContainsKey(entityId))
+            {
+                renderer.material.color = originalColors[entityId];
+                originalColors.Remove(entityId);
+            }
+        }
+    }
+
+    private Renderer GetRenderer(Entity entity)
+    {
+        if (entity == null) return null;
+
+        var renderer = entity.GetComponent<Renderer>();
+        if (renderer != null) return renderer;
+
+        return entity.GetComponentInChildren<Renderer>();
     }
 }

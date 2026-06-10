@@ -7,7 +7,7 @@ namespace SampleProject
         fileName = "CharacterConfig",
         menuName = "Gameplay/New CharacterConfig"
     )]
-    public sealed class CharacterConfig : ScriptableObject
+    public class CharacterConfig : ScriptableObject
     {
         [Header("Common")]
         public float radius;

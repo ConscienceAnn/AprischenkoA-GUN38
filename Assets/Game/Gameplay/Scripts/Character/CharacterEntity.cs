@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Entities
 {
-    public sealed class CharacterEntity : Entity
+    public abstract class CharacterEntity : Entity
     {
         [SerializeField]
         private CharacterConfig config;
@@ -58,6 +58,29 @@ namespace Entities
             {
                 value = this.GetComponentInChildren<Renderer>()
             });
+
+            InitCharacter();
+        }
+
+        protected virtual void InitCharacter() { }
+
+        public virtual void TakeDamage(int damage)
+        {
+            if (this.HasData<HitPointsComponent>())
+            {
+                ref var hp = ref this.GetData<HitPointsComponent>();
+                hp.current -= damage;
+
+                if (hp.current <= 0)
+                {
+                    Die();
+                }
+            }
+        }
+
+        protected virtual void Die()
+        {
+            this.SendEvent(new DestroyEvent());
         }
     }
 }

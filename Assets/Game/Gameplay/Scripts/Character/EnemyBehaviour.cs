@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SampleProject
 {
     [RequireComponent(typeof(Entity))]
-    public sealed class CharacterBehaviour : EntityBehaviour
+    public sealed class EnemyBehaviour : EntityBehaviour
     {
         protected override IEnumerable<IEcsSystem> ProvideSystems()
         {
@@ -16,18 +16,21 @@ namespace SampleProject
             yield return new CommandStateMachine(
                 new CommandState_MoveToPosition(),
                 new CommandState_AttackTarget(),
-                new CommandState_PatrolByPoints(),
-                new CommandState_GatherResource()  // Игрок собирает ресурсы
+                new CommandState_PatrolByPoints()
+            // НЕТ GatherResource - враги не собирают
             );
 
             yield return new CharacterAnimatorSystem();
             yield return new CharacterRigidbodySystem();
+
+            // Система зрения для врага
+            yield return new EnemyVisionSystem();
         }
 
         protected override IEnumerable<(Type, IEcsObserver)> ProvideObservers()
         {
             yield return (typeof(AnimatorEvent), new CharacterAnimatorObserver());
-            yield return (typeof(HitEvent), new PlayerHitObserver()); // Игрок получает урон
+            yield return (typeof(HitEvent), new EnemyHitObserver()); // Враг получает урон
         }
     }
 }

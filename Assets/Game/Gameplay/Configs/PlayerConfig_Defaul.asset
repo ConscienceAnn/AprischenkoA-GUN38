@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6d0e548567617d44b3e9913e1307c30, type: 3}
+  m_Name: PlayerConfig_Defaul
+  m_EditorClassIdentifier: 
+  radius: 0
+  hitPoints: 100
+  moveSpeed: 5
+  damage: 1
+  minDistance: 1
+  animationTime: 1.4
+  timeBetweenAttack: 0.8
+  damageType: 0
+  gatherSpeed: 1
+  carryCapacity: 10

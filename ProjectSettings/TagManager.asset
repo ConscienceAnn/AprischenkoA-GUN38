@@ -8,6 +8,8 @@ TagManager:
   - Resource
   - Unit
   - Obstacle
+  - PatrolPoint
+  - Enemy
   layers:
   - Default
   - TransparentFX

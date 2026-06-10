@@ -16,8 +16,10 @@ namespace Game.GameEngine.Ecs
             world.DeclareComponent<RendererComponent>();
             world.DeclareComponent<RigidbodyComponent>();
             world.DeclareComponent<SmoothRotationComponent>();
+            world.DeclareComponent<VisionComponent>();
 
             world.DeclareObserver<SmoothRotateEvent, SmoothRotateObserver>();
+            world.DeclareSystem<EnemyVisionSystem>();
         }
     }
 }
