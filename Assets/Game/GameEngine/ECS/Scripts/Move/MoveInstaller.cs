@@ -19,12 +19,14 @@ namespace Game.GameEngine.Ecs
 
             world.DeclareComponent<GroupMoveData>();
 
+            world.DeclareComponent<NavMeshAgentComponent>();
+
             world.DeclareSystem<MoveStepSystem>();
             world.DeclareSystem<MoveToPositionSystem>();
             world.DeclareSystem<PatrolPointsSystem>();
 
             world.DeclareSystem<GroupMoveSystem>();        
-            world.DeclareSystem<ObstacleAvoidanceSystem>();
+           // world.DeclareSystem<ObstacleAvoidanceSystem>();
 
         }
     }

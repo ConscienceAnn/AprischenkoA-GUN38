@@ -5,20 +5,16 @@ namespace Game.GameEngine.Ecs
 {
     public sealed class MoveStepSystem : IEcsFixedUpdate
     {
-        private readonly EcsPool<MoveStepData> stepDataPool;
-        private readonly EcsPool<MoveSpeedComponent> speedPool;
-        private readonly EcsPool<RigidbodyComponent> rigidbodyPool;
-
-        private readonly EcsEmitter<SmoothRotateEvent> rotateEmitter;
-
-        private EcsPool<TransformComponent> transformPool;
+        private EcsPool<MoveStepData> stepDataPool;
+        private EcsPool<MoveSpeedComponent> speedPool;
+        private EcsPool<NavMeshAgentComponent> agentPool;
+        private EcsPool<MoveToPositionData> moveToPositionPool;
+        private EcsPool<RigidbodyComponent> rigidbodyPool;
 
         void IEcsFixedUpdate.FixedUpdate(int entity)
         {
             if (!this.stepDataPool.HasComponent(entity))
-            {
                 return;
-            }
 
             ref var stepData = ref this.stepDataPool.GetComponent(entity);
             if (stepData.completed)
@@ -27,48 +23,39 @@ namespace Game.GameEngine.Ecs
                 return;
             }
 
-            this.UpdatePosition(entity, stepData.direction);
-            this.UpdateRotation(entity, stepData.direction);
-
+            this.UpdatePosition(entity);
             stepData.completed = true;
         }
 
-        private void UpdatePosition(int entity, Vector3 direction)
+        private void UpdatePosition(int entity)
         {
-            ref var rigidbody = ref this.rigidbodyPool.GetComponent(entity).value;
-            ref var moveSpeed = ref this.speedPool.GetComponent(entity).value;
+            if (!this.agentPool.HasComponent(entity))
+                return;
 
-            Vector3 finalDirection = AvoidObstacles(entity, direction);
+            ref var agent = ref this.agentPool.GetComponent(entity).value;
+            ref var moveData = ref this.moveToPositionPool.GetComponent(entity);
+            ref var speed = ref this.speedPool.GetComponent(entity);
 
-            var moveStep = direction * moveSpeed * Time.fixedDeltaTime;
-            var newPosition = rigidbody.position + moveStep;
-            rigidbody.MovePosition(newPosition);
-        }
-
-        private Vector3 AvoidObstacles(int entity, Vector3 desiredDirection)
-        {
-            if (!this.transformPool.HasComponent(entity)) return desiredDirection;
-
-            ref var transformComp = ref this.transformPool.GetComponent(entity);
-            Vector3 currentPos = transformComp.value.position;
-
-            if (Physics.Raycast(currentPos, desiredDirection, out RaycastHit hit, 1.2f))
+            if (moveData.isReached)
             {
-                if (hit.collider.CompareTag("Obstacle") || hit.collider.CompareTag("Unit"))
+                if (agent.isActiveAndEnabled)
                 {
-                    Vector3 avoidDirection = Vector3.Cross(desiredDirection, Vector3.up);
-                    return avoidDirection.normalized;
+                    agent.isStopped = true;        // Полная остановка
+                    agent.ResetPath();              // Сброс пути
+                    agent.velocity = Vector3.zero;  // Обнуление скорости
                 }
+                return;
             }
-            return desiredDirection;
-        }
 
-        private void UpdateRotation(int entity, Vector3 direction)
-        {
-            this.rotateEmitter.SendEvent(entity, new SmoothRotateEvent
+            // Если агент остановлен - возобновляем
+            if (agent.isStopped)
             {
-                direction = direction
-            });
+                agent.isStopped = false;
+            }
+
+            // Настраиваем и двигаем
+            agent.speed = speed.value;
+            agent.SetDestination(moveData.destination);
         }
     }
 }

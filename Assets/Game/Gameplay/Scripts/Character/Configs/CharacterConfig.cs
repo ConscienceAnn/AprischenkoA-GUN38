@@ -16,7 +16,7 @@ namespace SampleProject
         public int hitPoints = 100;
         
         [Header("Movement")]
-        public float moveSpeed = 5.0f;
+        public float moveSpeed = 15.0f;
 
         [Header("Combat")]
         public int damage = 1;

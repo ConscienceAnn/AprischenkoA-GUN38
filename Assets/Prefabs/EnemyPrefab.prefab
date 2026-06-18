@@ -959,6 +959,7 @@ GameObject:
   - component: {fileID: 6859377605381119384}
   - component: {fileID: 6252194937660860816}
   - component: {fileID: 4727831182157892319}
+  - component: {fileID: 4970218655726515257}
   m_Layer: 0
   m_Name: EnemyPrefab
   m_TagString: Enemy
@@ -1049,7 +1050,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
@@ -1118,6 +1119,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b4b87ac0c3b21445ae78859f8836922, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!195 &4970218655726515257
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7286324022936245559}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 1
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &7457448535954566781
 GameObject:
   m_ObjectHideFlags: 0

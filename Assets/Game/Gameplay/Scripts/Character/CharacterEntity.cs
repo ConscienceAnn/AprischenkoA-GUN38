@@ -1,6 +1,7 @@
 using Game.GameEngine.Ecs;
 using SampleProject;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Entities
 {
@@ -53,6 +54,31 @@ namespace Entities
             {
                 value = this.GetComponent<Rigidbody>()
             });
+
+            NavMeshAgent navMeshAgent = this.GetComponent<NavMeshAgent>();
+            if (navMeshAgent != null)
+            {
+                this.SetData(new NavMeshAgentComponent
+                {
+                    value = navMeshAgent
+                });
+
+                // Настройка скорости из конфига
+                ref var speed = ref this.GetData<MoveSpeedComponent>();
+                navMeshAgent.speed = speed.value;
+
+                // Автоповорот через NavMeshAgent
+                navMeshAgent.autoBraking = true;
+                navMeshAgent.updateRotation = true;
+                navMeshAgent.updatePosition = true;
+                navMeshAgent.angularSpeed = 360f;
+                navMeshAgent.acceleration = 20f;
+            }
+            else
+            {
+                Debug.LogError($"NavMeshAgent not found on {this.name}!");
+            }
+
 
             this.SetData(new RendererComponent
             {
