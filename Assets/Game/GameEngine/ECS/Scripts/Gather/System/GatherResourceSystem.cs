@@ -226,6 +226,8 @@ namespace Game.GameEngine.Ecs
             {
                 remainingTime = GATHERING_DURATION
             });
+
+            this.RotateToResource(entity, resourceId);
         }
 
         private void SetMoveToHomeState(int entity)
@@ -257,6 +259,23 @@ namespace Game.GameEngine.Ecs
             this.gatherStatePool.RemoveComponent(entity);
             this.targetResourcePool.RemoveComponent(entity);
             this.gatherDurationPool.RemoveComponent(entity);
+        }
+
+        private void RotateToResource(int entity, int resourceId)
+        {
+            if (!this.transformPool.HasComponent(entity) || !this.transformPool.HasComponent(resourceId))
+                return;
+
+            ref var myTransform = ref this.transformPool.GetComponent(entity);
+            ref var resourceTransform = ref this.transformPool.GetComponent(resourceId);
+
+            Vector3 direction = (resourceTransform.value.position - myTransform.value.position).normalized;
+            direction.y = 0;
+
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                myTransform.value.rotation = Quaternion.LookRotation(direction);
+            }
         }
     }
 }
