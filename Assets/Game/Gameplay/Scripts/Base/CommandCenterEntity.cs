@@ -6,12 +6,13 @@ namespace SampleProject.Base
     public sealed class CommandCenterEntity : Entity
     {
         [SerializeField] private float collectionRadius = 3f;
+        [SerializeField] private Transform dropPoint;
 
         protected override void Init()
         {
             this.SetData(new TransformComponent
             {
-                value = this.transform,
+                value = this.dropPoint,
                 radius = this.collectionRadius
             });
 

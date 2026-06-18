@@ -10,35 +10,45 @@ namespace SampleProject.ResourceObject
         [SerializeField] private int resourceAmount = 10;
         [SerializeField] private int maxHitPoints = 50;
 
+        [Header("Collection Settings")]
+        [SerializeField] private Transform collectionPoint;
+        [SerializeField] private float collectionRadius = 1.5f; // Радиус взаимодействия
+
         protected override void Init()
         {
-            // Transform компонент для позиции
+
+            Transform targetTransform = this.collectionPoint != null
+         ? this.collectionPoint
+         : this.transform;
+
             this.SetData(new TransformComponent
             {
-                value = this.transform,
-                radius = 2.0f // Радиус взаимодействия
+                value = targetTransform, 
+                radius = this.collectionRadius
             });
+
 
             // Компонент ресурса (для Gather системы)
             this.SetData(new ResourceComponent
-            {
-                resourceType = this.resourceType,
-                resourceAmount = this.resourceAmount,
-                currentAmount = this.maxHitPoints
-            });
+                {
+                    resourceType = this.resourceType,
+                    resourceAmount = this.resourceAmount,
+                    currentAmount = this.maxHitPoints
+                });
 
-            // HitPoints (чтобы ресурс можно было "уничтожить" или он не бесконечный)
-            this.SetData(new HitPointsComponent
-            {
-                max = this.maxHitPoints,
-                current = this.maxHitPoints
-            });
+                // HitPoints (чтобы ресурс можно было "уничтожить" или он не бесконечный)
+                this.SetData(new HitPointsComponent
+                {
+                    max = this.maxHitPoints,
+                    current = this.maxHitPoints
+                });
 
-            // GameObject компонент
-            this.SetData(new GameObjectComponent
-            {
-                value = this.gameObject
-            });
+                // GameObject компонент
+                this.SetData(new GameObjectComponent
+                {
+                    value = this.gameObject
+                });
+            
         }
 
         // Метод для уменьшения ресурса при сборе
@@ -57,6 +67,7 @@ namespace SampleProject.ResourceObject
         }
     }
 
+
     // Компонент для хранения информации о ресурсе
     public struct ResourceComponent
     {
@@ -65,4 +76,5 @@ namespace SampleProject.ResourceObject
         public int currentAmount;     // Осталось ресурса
     }
 
+   
 }
